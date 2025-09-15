@@ -3,8 +3,10 @@ import { Calendar, CheckCircle, Clock, Users, TrendingUp } from 'lucide-react';
 import Card from '../components/Card';
 import GanttChart from '../components/GanttChart';
 import { Task, Project, TeamMember } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Dashboard: React.FC = () => {
+  const { t } = useLanguage();
   const todayTasks: Task[] = [
     { id: '1', title: '프로젝트 계획 수립', assignee: '김철수', dueDate: '2024-01-15', startDate: '2024-01-10', status: 'in-progress', priority: 'high' },
     { id: '2', title: 'UI 디자인 리뷰', assignee: '이영희', dueDate: '2024-01-15', startDate: '2024-01-12', status: 'todo', priority: 'medium' },
@@ -67,8 +69,8 @@ const Dashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">대시보드</h1>
-        <p className="text-gray-600 mt-2">팀의 현재 진행 상황을 한눈에 확인하세요</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t('dashboard.title')}</h1>
+        <p className="text-gray-600 mt-2">{t('dashboard.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">

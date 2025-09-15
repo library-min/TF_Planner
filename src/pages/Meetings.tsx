@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { Plus, Search, MessageCircle, Calendar, Users, Edit3, Save, X, FileText } from 'lucide-react';
+import { Plus, Search, MessageCircle, Calendar, Users, Edit3, Save, X, FileText, Paperclip } from 'lucide-react';
 import Card from '../components/Card';
-import { Meeting, Comment } from '../types';
+import FileAttachment from '../components/FileAttachment';
+import { Meeting, Comment, AttachedFile } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Meetings: React.FC = () => {
+  const { t } = useLanguage();
   const [meetings, setMeetings] = useState<Meeting[]>([
     {
       id: '1',
@@ -24,6 +27,7 @@ const Meetings: React.FC = () => {
 - [ ] 온보딩 가이드 업데이트 (김철수, 1/20까지)
 - [ ] 다음주 스프린트 계획 수립 (팀 전체, 1/22까지)`,
       attendees: ['김철수', '이영희', '박민수', '정수진'],
+      attachments: [],
       comments: [
         {
           id: '1',
@@ -60,6 +64,7 @@ const Meetings: React.FC = () => {
 - 디자인 시스템 문서화
 - 개발팀에 가이드라인 공유`,
       attendees: ['이영희', '정수진', '김철수'],
+      attachments: [],
       comments: []
     },
     {
@@ -84,6 +89,7 @@ const Meetings: React.FC = () => {
 - 교육 기획: 김철수
 - 감사 주관: 이영희`,
       attendees: ['김철수', '이영희', '박민수'],
+      attachments: [],
       comments: [
         {
           id: '3',
@@ -101,6 +107,7 @@ const Meetings: React.FC = () => {
   const [editContent, setEditContent] = useState('');
   const [newComment, setNewComment] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showFileAttachment, setShowFileAttachment] = useState(false);
 
   const filteredMeetings = meetings.filter(meeting =>
     meeting.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -149,6 +156,20 @@ const Meetings: React.FC = () => {
     }
   };
 
+  const handleFilesChange = (files: AttachedFile[]) => {
+    if (selectedMeeting) {
+      const updatedMeeting = {
+        ...selectedMeeting,
+        attachments: files
+      };
+
+      setMeetings(meetings.map(m => 
+        m.id === selectedMeeting.id ? updatedMeeting : m
+      ));
+      setSelectedMeeting(updatedMeeting);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('ko-KR', {
@@ -172,15 +193,15 @@ const Meetings: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">회의록</h1>
-          <p className="text-gray-600 mt-2">팀 회의 내용을 기록하고 공유하세요</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('meetings.title')}</h1>
+          <p className="text-gray-600 mt-2">{t('meetings.subtitle')}</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
         >
           <Plus className="w-5 h-5 mr-2" />
-          새 회의록 작성
+          {t('meetings.addMeeting')}
         </button>
       </div>
 
@@ -191,7 +212,7 @@ const Meetings: React.FC = () => {
               <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="회의록 검색..."
+                placeholder={t('meetings.search')}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -276,17 +297,24 @@ const Meetings: React.FC = () => {
                           className="flex items-center px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                         >
                           <Save className="w-4 h-4 mr-1" />
-                          저장
+                          {t('common.save')}
                         </button>
                         <button
                           onClick={handleEditCancel}
                           className="flex items-center px-3 py-2 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                         >
                           <X className="w-4 h-4 mr-1" />
-                          취소
+                          {t('common.cancel')}
                         </button>
                       </div>
                     )}
+                    <button
+                      onClick={() => setShowFileAttachment(!showFileAttachment)}
+                      className="flex items-center px-3 py-2 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors ml-2"
+                    >
+                      <Paperclip className="w-4 h-4 mr-1" />
+                      {t('addMeeting.fileAttachment')} {selectedMeeting.attachments && selectedMeeting.attachments.length > 0 && `(${selectedMeeting.attachments.length})`}
+                    </button>
                   </div>
                 </div>
 
@@ -304,9 +332,19 @@ const Meetings: React.FC = () => {
                     </div>
                   )}
                 </div>
+
+                {showFileAttachment && (
+                  <div className="mt-6 pt-6 border-t border-gray-200">
+                    <h4 className="text-lg font-medium text-gray-900 mb-4">{t('addMeeting.fileAttachment')}</h4>
+                    <FileAttachment
+                      files={selectedMeeting.attachments || []}
+                      onFilesChange={handleFilesChange}
+                    />
+                  </div>
+                )}
               </Card>
 
-              <Card title="댓글">
+              <Card title={t('meetings.addComment')}>
                 <div className="space-y-4">
                   {selectedMeeting.comments.map((comment) => (
                     <div key={comment.id} className="border-l-2 border-blue-200 pl-4">
@@ -325,7 +363,7 @@ const Meetings: React.FC = () => {
                       <textarea
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
-                        placeholder="댓글을 작성해 주세요..."
+                        placeholder={t('meetings.commentPlaceholder')}
                         className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                         rows={3}
                       />
@@ -333,6 +371,7 @@ const Meetings: React.FC = () => {
                         onClick={handleAddComment}
                         disabled={!newComment.trim()}
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                        title={t('meetings.submit')}
                       >
                         <MessageCircle className="w-5 h-5" />
                       </button>
@@ -356,38 +395,45 @@ const Meetings: React.FC = () => {
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">새 회의록 작성</h2>
+            <h2 className="text-xl font-bold mb-4">{t('addMeeting.title')}</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">회의 제목</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('addMeeting.meetingTitle')}</label>
                 <input
                   type="text"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="회의 제목을 입력하세요"
+                  placeholder={t('addMeeting.meetingTitlePlaceholder')}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">회의 일자</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('addMeeting.meetingDate')}</label>
                 <input
                   type="date"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">참석자</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('addMeeting.attendees')}</label>
                 <input
                   type="text"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="참석자 이름을 쉼표로 구분하여 입력하세요"
+                  placeholder={t('addMeeting.attendeesPlaceholder')}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">회의 내용</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('addMeeting.content')}</label>
                 <textarea
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   rows={12}
-                  placeholder="회의 내용을 마크다운 형식으로 작성해주세요..."
+                  placeholder={t('addMeeting.contentPlaceholder')}
                 ></textarea>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">{t('addMeeting.fileAttachment')}</label>
+                <FileAttachment
+                  files={[]}
+                  onFilesChange={() => {}}
+                />
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-6">
@@ -395,10 +441,10 @@ const Meetings: React.FC = () => {
                 onClick={() => setShowAddModal(false)}
                 className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                취소
+                {t('addMeeting.cancel')}
               </button>
               <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                저장
+                {t('addMeeting.add')}
               </button>
             </div>
           </div>

@@ -9,17 +9,22 @@ import {
   Menu,
   X
 } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { useMessage } from '../contexts/MessageContext';
 
 const Navigation: React.FC = () => {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const { language, setLanguage, t } = useLanguage();
+  const { isDarkMode } = useTheme();
 
   const navItems = [
-    { path: '/', icon: LayoutDashboard, label: '대시보드' },
-    { path: '/tasks', icon: CheckSquare, label: '할 일 관리' },
-    { path: '/meetings', icon: FileText, label: '회의록' },
-    { path: '/calendar', icon: Calendar, label: '일정 캘린더' },
-    { path: '/team', icon: Users, label: '팀' },
+    { path: '/', icon: LayoutDashboard, label: t('nav.dashboard') },
+    { path: '/tasks', icon: CheckSquare, label: t('nav.tasks') },
+    { path: '/meetings', icon: FileText, label: t('nav.meetings') },
+    { path: '/calendar', icon: Calendar, label: t('nav.calendar') },
+    { path: '/team', icon: Users, label: t('nav.userManagement') },
   ];
 
   const toggleSidebar = () => {
@@ -45,12 +50,46 @@ const Navigation: React.FC = () => {
       )}
 
       {/* Sidebar */}
-      <nav className={`fixed left-0 top-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-40 ${
+      <nav className={`fixed left-0 top-0 h-full w-64 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg transform transition-all duration-300 ease-in-out z-40 ${
         isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}>
+        {/* Top Controls */}
+        <div className={`p-4 border-b ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}`}>
+          {/* Language Selector */}
+          <div className="flex items-center justify-between mb-3">
+            <span className={`text-xs font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>Language</span>
+            <div className={`flex rounded border ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-100 border-gray-300'}`}>
+              <button
+                onClick={() => setLanguage('ko')}
+                className={`px-2 py-1 text-xs rounded-l ${
+                  language === 'ko' 
+                    ? 'bg-blue-500 text-white' 
+                    : isDarkMode
+                      ? 'text-gray-300 hover:bg-gray-600'
+                      : 'text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                한국어
+              </button>
+              <button
+                onClick={() => setLanguage('en')}
+                className={`px-2 py-1 text-xs rounded-r ${
+                  language === 'en' 
+                    ? 'bg-blue-500 text-white' 
+                    : isDarkMode
+                      ? 'text-gray-300 hover:bg-gray-600'
+                      : 'text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                English
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div className="p-6">
           <h1 className="text-2xl font-bold text-blue-600">TF-Planner</h1>
-          <p className="text-sm text-gray-600 mt-1">Team Collaboration</p>
+          <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Team Collaboration</p>
         </div>
         
         <ul className="mt-8">
@@ -65,8 +104,12 @@ const Navigation: React.FC = () => {
                   onClick={() => setIsOpen(false)}
                   className={`flex items-center px-6 py-3 text-sm transition-colors ${
                     isActive
-                      ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
-                      : 'text-gray-700 hover:bg-gray-50'
+                      ? isDarkMode
+                        ? 'bg-blue-900 text-blue-300 border-r-2 border-blue-400'
+                        : 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
+                      : isDarkMode
+                        ? 'text-gray-300 hover:bg-gray-700'
+                        : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
                   <Icon className="w-5 h-5 mr-3" />
@@ -76,6 +119,32 @@ const Navigation: React.FC = () => {
             );
           })}
         </ul>
+
+        {/* User Profile Section */}
+        <div className="absolute bottom-6 left-6 right-6">
+          <div className={`p-3 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                {language === 'ko' ? '김' : 'K'}
+              </div>
+              <div className="ml-3 flex-1">
+                <div className={`text-sm font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                  {language === 'ko' ? '김철수' : 'Kim Cheolsu'}
+                </div>
+                <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  {language === 'ko' ? '관리자' : 'Administrator'}
+                </div>
+              </div>
+            </div>
+            <button className={`w-full mt-3 text-xs py-1 px-2 rounded transition-colors ${
+              isDarkMode 
+                ? 'text-gray-300 hover:text-gray-100 hover:bg-gray-600' 
+                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'
+            }`}>
+              {language === 'ko' ? '로그아웃' : 'Logout'}
+            </button>
+          </div>
+        </div>
       </nav>
     </>
   );

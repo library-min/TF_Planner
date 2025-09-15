@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Upload, File, X, Download, Eye } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface AttachedFile {
   id: string;
@@ -27,6 +28,7 @@ const FileAttachment: React.FC<FileAttachmentProps> = ({
   acceptedFileTypes = ['.pdf', '.doc', '.docx', '.txt', '.jpg', '.jpeg', '.png', '.gif', '.zip'],
   className = ''
 }) => {
+  const { t } = useLanguage();
   const [isDragging, setIsDragging] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -71,13 +73,13 @@ const FileAttachment: React.FC<FileAttachmentProps> = ({
     Array.from(selectedFiles).forEach((file, index) => {
       // Check file size
       if (file.size > maxFileSize * 1024 * 1024) {
-        alert(`파일 "${file.name}"이 최대 크기(${maxFileSize}MB)를 초과합니다.`);
+        alert(`File "${file.name}" exceeds maximum size (${maxFileSize}MB).`);
         return;
       }
 
       // Check max files limit
       if (files.length + newFiles.length >= maxFiles) {
-        alert(`최대 ${maxFiles}개의 파일만 첨부할 수 있습니다.`);
+        alert(`Maximum ${maxFiles} files allowed.`);
         return;
       }
 
@@ -151,13 +153,13 @@ const FileAttachment: React.FC<FileAttachmentProps> = ({
       >
         <Upload className={`w-8 h-8 mx-auto mb-2 ${isDragging ? 'text-blue-500' : 'text-gray-400'}`} />
         <p className="text-sm text-gray-600 mb-1">
-          파일을 여기로 드래그하거나 클릭하여 선택하세요
+          {t('fileAttachment.dragDrop')}
         </p>
         <p className="text-xs text-gray-500">
-          최대 {maxFileSize}MB, {maxFiles}개 파일까지 가능
+          {t('fileAttachment.maxSize')} {maxFileSize}MB, {maxFiles} {t('fileAttachment.maxFiles')}
         </p>
         <p className="text-xs text-gray-400 mt-1">
-          지원 형식: {acceptedFileTypes.join(', ')}
+          {t('fileAttachment.supportedFormats')}: {acceptedFileTypes.join(', ')}
         </p>
       </div>
 
@@ -173,7 +175,7 @@ const FileAttachment: React.FC<FileAttachmentProps> = ({
       {/* File List */}
       {files.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-sm font-medium text-gray-700">첨부된 파일 ({files.length})</h4>
+          <h4 className="text-sm font-medium text-gray-700">{t('fileAttachment.attachedFiles')} ({files.length})</h4>
           <div className="space-y-2">
             {files.map((file) => (
               <div
@@ -194,7 +196,7 @@ const FileAttachment: React.FC<FileAttachmentProps> = ({
                   {uploadingFiles.includes(file.id) && (
                     <div className="flex items-center space-x-2">
                       <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                      <span className="text-xs text-blue-600">업로드 중...</span>
+                      <span className="text-xs text-blue-600">{t('fileAttachment.uploading')}</span>
                     </div>
                   )}
                 </div>
@@ -204,7 +206,7 @@ const FileAttachment: React.FC<FileAttachmentProps> = ({
                     <button
                       onClick={() => window.open(file.url, '_blank')}
                       className="p-1 text-gray-500 hover:text-blue-600 transition-colors"
-                      title="미리보기"
+                      title={t('fileAttachment.preview')}
                     >
                       <Eye className="w-4 h-4" />
                     </button>
@@ -213,7 +215,7 @@ const FileAttachment: React.FC<FileAttachmentProps> = ({
                   <button
                     onClick={() => handleDownloadFile(file)}
                     className="p-1 text-gray-500 hover:text-green-600 transition-colors"
-                    title="다운로드"
+                    title={t('fileAttachment.download')}
                     disabled={uploadingFiles.includes(file.id)}
                   >
                     <Download className="w-4 h-4" />
@@ -222,7 +224,7 @@ const FileAttachment: React.FC<FileAttachmentProps> = ({
                   <button
                     onClick={() => handleRemoveFile(file.id)}
                     className="p-1 text-gray-500 hover:text-red-600 transition-colors"
-                    title="제거"
+                    title={t('fileAttachment.remove')}
                     disabled={uploadingFiles.includes(file.id)}
                   >
                     <X className="w-4 h-4" />
@@ -237,7 +239,7 @@ const FileAttachment: React.FC<FileAttachmentProps> = ({
       {/* File Statistics */}
       {files.length > 0 && (
         <div className="text-xs text-gray-500 pt-2 border-t">
-          총 {files.length}개 파일, {formatFileSize(files.reduce((total, file) => total + file.size, 0))}
+          {t('fileAttachment.totalFiles')} {files.length} {t('fileAttachment.totalSize')}, {formatFileSize(files.reduce((total, file) => total + file.size, 0))}
         </div>
       )}
     </div>

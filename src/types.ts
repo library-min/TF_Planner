@@ -52,6 +52,7 @@ export interface Meeting {
   content: string;
   comments: Comment[];
   attendees?: string[];
+  attachments?: AttachedFile[];
 }
 
 export interface Comment {

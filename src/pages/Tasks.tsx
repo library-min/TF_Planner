@@ -4,8 +4,10 @@ import Card from '../components/Card';
 import GanttChart from '../components/GanttChart';
 import FileAttachment from '../components/FileAttachment';
 import { Task, AttachedFile } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Tasks: React.FC = () => {
+  const { t } = useLanguage();
   const [tasks, setTasks] = useState<Task[]>([
     {
       id: '1',
@@ -134,8 +136,8 @@ const Tasks: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">할 일 관리</h1>
-          <p className="text-gray-600 mt-2">팀의 모든 작업을 효율적으로 관리하세요</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('tasks.title')}</h1>
+          <p className="text-gray-600 mt-2">{t('tasks.subtitle')}</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex bg-gray-100 rounded-lg p-1">
@@ -148,7 +150,7 @@ const Tasks: React.FC = () => {
               }`}
             >
               <Filter className="w-4 h-4 mr-2" />
-              목록
+              {t('tasks.listView')}
             </button>
             <button
               onClick={() => setCurrentView('gantt')}
@@ -159,7 +161,7 @@ const Tasks: React.FC = () => {
               }`}
             >
               <BarChart3 className="w-4 h-4 mr-2" />
-              간트차트
+              {t('tasks.ganttView')}
             </button>
           </div>
           <button
@@ -167,7 +169,7 @@ const Tasks: React.FC = () => {
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
           >
             <Plus className="w-5 h-5 mr-2" />
-            새 작업 추가
+            {t('tasks.addTask')}
           </button>
         </div>
       </div>
