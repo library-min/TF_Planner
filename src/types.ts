@@ -17,6 +17,17 @@ export interface Task {
   status: 'todo' | 'in-progress' | 'completed';
   priority: 'high' | 'medium' | 'low';
   description?: string;
+  startDate?: string;
+  attachments?: AttachedFile[];
+}
+
+export interface AttachedFile {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  url: string;
+  uploadedAt: string;
 }
 
 export interface Project {

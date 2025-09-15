@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Plus, Filter, Search, Calendar, User, Flag } from 'lucide-react';
+import { Plus, Filter, Search, Calendar, User, Flag, BarChart3, Paperclip } from 'lucide-react';
 import Card from '../components/Card';
-import { Task } from '../types';
+import GanttChart from '../components/GanttChart';
+import FileAttachment from '../components/FileAttachment';
+import { Task, AttachedFile } from '../types';
 
 const Tasks: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([
@@ -11,8 +13,10 @@ const Tasks: React.FC = () => {
       description: '새로운 브랜드 가이드라인에 맞춰 웹사이트 전체 리디자인 계획 수립',
       assignee: '김철수',
       dueDate: '2024-01-20',
+      startDate: '2024-01-10',
       status: 'in-progress',
-      priority: 'high'
+      priority: 'high',
+      attachments: []
     },
     {
       id: '2',
@@ -20,8 +24,10 @@ const Tasks: React.FC = () => {
       description: '새로 추가된 엔드포인트들에 대한 API 문서 작성',
       assignee: '이영희',
       dueDate: '2024-01-18',
+      startDate: '2024-01-12',
       status: 'todo',
-      priority: 'medium'
+      priority: 'medium',
+      attachments: []
     },
     {
       id: '3',
@@ -29,8 +35,10 @@ const Tasks: React.FC = () => {
       description: '사용자 테이블 스키마 변경 및 데이터 마이그레이션 작업',
       assignee: '박민수',
       dueDate: '2024-01-15',
+      startDate: '2024-01-08',
       status: 'completed',
-      priority: 'high'
+      priority: 'high',
+      attachments: []
     },
     {
       id: '4',
@@ -38,8 +46,10 @@ const Tasks: React.FC = () => {
       description: 'iOS와 Android 버전 기능 테스트 및 버그 수정',
       assignee: '정수진',
       dueDate: '2024-01-22',
+      startDate: '2024-01-15',
       status: 'todo',
-      priority: 'medium'
+      priority: 'medium',
+      attachments: []
     },
     {
       id: '5',
@@ -47,14 +57,18 @@ const Tasks: React.FC = () => {
       description: '시스템 전반적인 보안 취약점 검사 및 패치',
       assignee: '김철수',
       dueDate: '2024-01-25',
+      startDate: '2024-01-16',
       status: 'in-progress',
-      priority: 'high'
+      priority: 'high',
+      attachments: []
     }
   ]);
 
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [currentView, setCurrentView] = useState<'list' | 'gantt'>('list');
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   const filteredTasks = tasks.filter(task => {
     const matchesStatus = filterStatus === 'all' || task.status === filterStatus;
@@ -105,6 +119,17 @@ const Tasks: React.FC = () => {
     ));
   };
 
+  const handleFilesChange = (taskId: string, files: AttachedFile[]) => {
+    setTasks(tasks.map(task => 
+      task.id === taskId ? { ...task, attachments: files } : task
+    ));
+  };
+
+  const ganttTasks = filteredTasks.filter(task => task.startDate).map(task => ({
+    ...task,
+    startDate: task.startDate!
+  }));
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -112,13 +137,39 @@ const Tasks: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900">할 일 관리</h1>
           <p className="text-gray-600 mt-2">팀의 모든 작업을 효율적으로 관리하세요</p>
         </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          새 작업 추가
-        </button>
+        <div className="flex items-center gap-3">
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setCurrentView('list')}
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center ${
+                currentView === 'list' 
+                  ? 'bg-white text-gray-900 shadow-sm' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              목록
+            </button>
+            <button
+              onClick={() => setCurrentView('gantt')}
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center ${
+                currentView === 'gantt' 
+                  ? 'bg-white text-gray-900 shadow-sm' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              간트차트
+            </button>
+          </div>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            새 작업 추가
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4">
@@ -146,67 +197,94 @@ const Tasks: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid gap-4">
-        {filteredTasks.map((task) => (
-          <Card key={task.id} className="hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900">{task.title}</h3>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
-                    {getStatusText(task.status)}
-                  </span>
-                  <Flag className={`w-4 h-4 ${getPriorityColor(task.priority)}`} />
+      {currentView === 'list' ? (
+        <div className="grid gap-4">
+          {filteredTasks.map((task) => (
+            <Card key={task.id} className="hover:shadow-md transition-shadow">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-lg font-semibold text-gray-900">{task.title}</h3>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
+                      {getStatusText(task.status)}
+                    </span>
+                    <Flag className={`w-4 h-4 ${getPriorityColor(task.priority)}`} />
+                    {task.attachments && task.attachments.length > 0 && (
+                      <div className="flex items-center text-gray-500">
+                        <Paperclip className="w-4 h-4 mr-1" />
+                        <span className="text-xs">{task.attachments.length}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {task.description && (
+                    <p className="text-gray-600 mb-3">{task.description}</p>
+                  )}
+                  
+                  <div className="flex items-center gap-6 text-sm text-gray-500">
+                    <div className="flex items-center gap-1">
+                      <User className="w-4 h-4" />
+                      <span>{task.assignee}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      <span>{task.dueDate}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Flag className="w-4 h-4" />
+                      <span className={getPriorityColor(task.priority)}>
+                        {getPriorityText(task.priority)}
+                      </span>
+                    </div>
+                  </div>
                 </div>
                 
-                {task.description && (
-                  <p className="text-gray-600 mb-3">{task.description}</p>
-                )}
-                
-                <div className="flex items-center gap-6 text-sm text-gray-500">
-                  <div className="flex items-center gap-1">
-                    <User className="w-4 h-4" />
-                    <span>{task.assignee}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    <span>{task.dueDate}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Flag className="w-4 h-4" />
-                    <span className={getPriorityColor(task.priority)}>
-                      {getPriorityText(task.priority)}
-                    </span>
-                  </div>
+                <div className="flex gap-2 ml-4">
+                  <button
+                    onClick={() => setSelectedTaskId(selectedTaskId === task.id ? null : task.id)}
+                    className="px-3 py-1 rounded text-sm font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors flex items-center"
+                  >
+                    <Paperclip className="w-4 h-4 mr-1" />
+                    파일
+                  </button>
+                  {task.status !== 'completed' && (
+                    <button
+                      onClick={() => handleStatusChange(task.id, task.status === 'todo' ? 'in-progress' : 'completed')}
+                      className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                        task.status === 'todo' 
+                          ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                          : 'bg-green-100 text-green-800 hover:bg-green-200'
+                      }`}
+                    >
+                      {task.status === 'todo' ? '시작하기' : '완료하기'}
+                    </button>
+                  )}
+                  {task.status === 'completed' && (
+                    <button
+                      onClick={() => handleStatusChange(task.id, 'in-progress')}
+                      className="px-3 py-1 rounded text-sm font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors"
+                    >
+                      재시작
+                    </button>
+                  )}
                 </div>
               </div>
               
-              <div className="flex gap-2 ml-4">
-                {task.status !== 'completed' && (
-                  <button
-                    onClick={() => handleStatusChange(task.id, task.status === 'todo' ? 'in-progress' : 'completed')}
-                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                      task.status === 'todo' 
-                        ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-                        : 'bg-green-100 text-green-800 hover:bg-green-200'
-                    }`}
-                  >
-                    {task.status === 'todo' ? '시작하기' : '완료하기'}
-                  </button>
-                )}
-                {task.status === 'completed' && (
-                  <button
-                    onClick={() => handleStatusChange(task.id, 'in-progress')}
-                    className="px-3 py-1 rounded text-sm font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors"
-                  >
-                    재시작
-                  </button>
-                )}
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
+              {selectedTaskId === task.id && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">파일 첨부</h4>
+                  <FileAttachment
+                    files={task.attachments || []}
+                    onFilesChange={(files) => handleFilesChange(task.id, files)}
+                  />
+                </div>
+              )}
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <GanttChart tasks={ganttTasks} />
+      )}
 
       {filteredTasks.length === 0 && (
         <Card>
@@ -251,7 +329,7 @@ const Tasks: React.FC = () => {
 
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">새 작업 추가</h2>
             <div className="space-y-4">
               <div>
@@ -270,29 +348,47 @@ const Tasks: React.FC = () => {
                   placeholder="작업에 대한 상세 설명을 입력하세요"
                 ></textarea>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">담당자</label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                  <option>김철수</option>
-                  <option>이영희</option>
-                  <option>박민수</option>
-                  <option>정수진</option>
-                </select>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">담당자</label>
+                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <option>김철수</option>
+                    <option>이영희</option>
+                    <option>박민수</option>
+                    <option>정수진</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">우선순위</label>
+                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <option value="low">낮음</option>
+                    <option value="medium">보통</option>
+                    <option value="high">높음</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">시작일</label>
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">마감일</label>
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">마감일</label>
-                <input
-                  type="date"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                <label className="block text-sm font-medium text-gray-700 mb-3">파일 첨부</label>
+                <FileAttachment
+                  files={[]}
+                  onFilesChange={() => {}}
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">우선순위</label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                  <option value="low">낮음</option>
-                  <option value="medium">보통</option>
-                  <option value="high">높음</option>
-                </select>
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-6">

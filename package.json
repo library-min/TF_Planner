@@ -2,7 +2,7 @@
   "name": "tf-planner",
   "private": true,
   "version": "0.0.0",
-  "homepage" : "https://library-min.github.io/New/",
+  "homepage" : "https://library-min.github.io/TF_Planner/",
   "type": "module",
   "scripts": {
     "predeploy": "npm run build",

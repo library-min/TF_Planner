@@ -1,13 +1,22 @@
 import React from 'react';
 import { Calendar, CheckCircle, Clock, Users, TrendingUp } from 'lucide-react';
 import Card from '../components/Card';
+import GanttChart from '../components/GanttChart';
 import { Task, Project, TeamMember } from '../types';
 
 const Dashboard: React.FC = () => {
   const todayTasks: Task[] = [
-    { id: '1', title: '프로젝트 계획 수립', assignee: '김철수', dueDate: '2024-01-15', status: 'in-progress', priority: 'high' },
-    { id: '2', title: 'UI 디자인 리뷰', assignee: '이영희', dueDate: '2024-01-15', status: 'todo', priority: 'medium' },
-    { id: '3', title: '데이터베이스 스키마 설계', assignee: '박민수', dueDate: '2024-01-15', status: 'completed', priority: 'high' },
+    { id: '1', title: '프로젝트 계획 수립', assignee: '김철수', dueDate: '2024-01-15', startDate: '2024-01-10', status: 'in-progress', priority: 'high' },
+    { id: '2', title: 'UI 디자인 리뷰', assignee: '이영희', dueDate: '2024-01-15', startDate: '2024-01-12', status: 'todo', priority: 'medium' },
+    { id: '3', title: '데이터베이스 스키마 설계', assignee: '박민수', dueDate: '2024-01-15', startDate: '2024-01-08', status: 'completed', priority: 'high' },
+  ];
+
+  const allTasks: Task[] = [
+    { id: '1', title: '프로젝트 계획 수립', assignee: '김철수', dueDate: '2024-01-15', startDate: '2024-01-10', status: 'in-progress', priority: 'high' },
+    { id: '2', title: 'UI 디자인 리뷰', assignee: '이영희', dueDate: '2024-01-18', startDate: '2024-01-12', status: 'todo', priority: 'medium' },
+    { id: '3', title: '데이터베이스 스키마 설계', assignee: '박민수', dueDate: '2024-01-15', startDate: '2024-01-08', status: 'completed', priority: 'high' },
+    { id: '4', title: '모바일 앱 테스트', assignee: '정수진', dueDate: '2024-01-22', startDate: '2024-01-15', status: 'todo', priority: 'medium' },
+    { id: '5', title: '보안 취약점 점검', assignee: '김철수', dueDate: '2024-01-25', startDate: '2024-01-16', status: 'in-progress', priority: 'high' }
   ];
 
   const projects: Project[] = [
@@ -205,6 +214,11 @@ const Dashboard: React.FC = () => {
           ))}
         </div>
       </Card>
+
+      <GanttChart 
+        tasks={allTasks.map(task => ({ ...task, startDate: task.startDate! }))} 
+        className="mt-6"
+      />
     </div>
   );
 };
