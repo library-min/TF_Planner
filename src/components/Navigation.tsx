@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useMessage } from '../contexts/MessageContext';
 
 const Navigation: React.FC = () => {
@@ -18,6 +19,7 @@ const Navigation: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { language, setLanguage, t } = useLanguage();
   const { isDarkMode } = useTheme();
+  const { user, logout } = useAuth();
 
   const navItems = [
     { path: '/', icon: LayoutDashboard, label: t('nav.dashboard') },
@@ -125,22 +127,25 @@ const Navigation: React.FC = () => {
           <div className={`p-3 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
             <div className="flex items-center">
               <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                {language === 'ko' ? '김' : 'K'}
+                {user?.name?.charAt(0) || 'U'}
               </div>
               <div className="ml-3 flex-1">
                 <div className={`text-sm font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-                  {language === 'ko' ? '김철수' : 'Kim Cheolsu'}
+                  {user?.name || 'User'}
                 </div>
                 <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  {language === 'ko' ? '관리자' : 'Administrator'}
+                  {user?.role || (language === 'ko' ? '사용자' : 'User')}
                 </div>
               </div>
             </div>
-            <button className={`w-full mt-3 text-xs py-1 px-2 rounded transition-colors ${
-              isDarkMode 
-                ? 'text-gray-300 hover:text-gray-100 hover:bg-gray-600' 
-                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'
-            }`}>
+            <button 
+              onClick={logout}
+              className={`w-full mt-3 text-xs py-1 px-2 rounded transition-colors ${
+                isDarkMode 
+                  ? 'text-gray-300 hover:text-gray-100 hover:bg-gray-600' 
+                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'
+              }`}
+            >
               {language === 'ko' ? '로그아웃' : 'Logout'}
             </button>
           </div>

@@ -1,14 +1,21 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
+import Login from './components/Login';
 import Dashboard from './pages/Dashboard';
 import Tasks from './pages/Tasks';
 import Meetings from './pages/Meetings';
 import Calendar from './pages/Calendar';
 import UserManagement from './pages/UserManagement';
 import { useTheme } from './contexts/ThemeContext';
+import { useAuth } from './contexts/AuthContext';
 
 function App() {
   const { isDarkMode } = useTheme();
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Login />;
+  }
 
   return (
     <Router>
