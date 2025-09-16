@@ -270,7 +270,7 @@ const Login: React.FC = () => {
             </p>
             <div className="space-y-1">
               <p>• {language === 'ko' ? '관리자: 모든 기능 접근 가능' : 'Admin: Full feature access'}</p>
-              <p>• {language === 'ko' ? '사용자: 제한된 기능' : 'User: Limited features'}</p>
+              <p>• {language === 'ko' ? '사용자1234: 제한된 기능' : 'User: Limited features'}</p>
             </div>
           </div>
           </div>
