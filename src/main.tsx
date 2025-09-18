@@ -6,15 +6,18 @@ import { LanguageProvider } from './contexts/LanguageContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { MessageProvider } from './contexts/MessageContext'
 import { AuthProvider } from './contexts/AuthContext'
+import { DataProvider } from './contexts/DataContext'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
       <LanguageProvider>
         <AuthProvider>
-          <MessageProvider>
-            <App />
-          </MessageProvider>
+          <DataProvider>
+            <MessageProvider>
+              <App />
+            </MessageProvider>
+          </DataProvider>
         </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>

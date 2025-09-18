@@ -12,7 +12,6 @@ import {
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
-import { useMessage } from '../contexts/MessageContext';
 
 const Navigation: React.FC = () => {
   const location = useLocation();
@@ -90,8 +89,13 @@ const Navigation: React.FC = () => {
         </div>
 
         <div className="p-6">
-          <h1 className="text-2xl font-bold text-blue-600">TF-Planner</h1>
-          <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Team Collaboration</p>
+          <Link to="/" className="block">
+            <img 
+              src="/Logo(2).svg" 
+              alt="TF-Planner" 
+              className="h-16 w-auto cursor-pointer hover:opacity-80 transition-opacity"
+            />
+          </Link>
         </div>
         
         <ul className="mt-8">
@@ -134,7 +138,7 @@ const Navigation: React.FC = () => {
                   {user?.name || 'User'}
                 </div>
                 <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  {user?.role || (language === 'ko' ? '사용자' : 'User')}
+                  {user?.role || t('common.user')}
                 </div>
               </div>
             </div>
@@ -146,7 +150,7 @@ const Navigation: React.FC = () => {
                   : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'
               }`}
             >
-              {language === 'ko' ? '로그아웃' : 'Logout'}
+              {t('common.logout')}
             </button>
           </div>
         </div>

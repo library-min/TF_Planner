@@ -4,7 +4,7 @@ export interface Task {
   description?: string;
   assignee: string;
   dueDate: string;
-  status: 'todo' | 'in-progress' | 'completed';
+  status: 'pending' | 'in-progress' | 'completed';
   priority: 'low' | 'medium' | 'high';
 }
 

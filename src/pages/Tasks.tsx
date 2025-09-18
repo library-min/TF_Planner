@@ -1,76 +1,33 @@
 import React, { useState } from 'react';
-import { Plus, Filter, Search, Calendar, User, Flag, BarChart3, Paperclip } from 'lucide-react';
+import { Plus, Filter, Search, Calendar, User, Flag, BarChart3, Paperclip, Trash2 } from 'lucide-react';
 import Card from '../components/Card';
 import GanttChart from '../components/GanttChart';
 import FileAttachment from '../components/FileAttachment';
-import { Task, AttachedFile } from '../types';
+import { AttachedFile } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { useData, Task } from '../contexts/DataContext';
 
 const Tasks: React.FC = () => {
   const { t } = useLanguage();
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: '1',
-      title: '웹사이트 리디자인 프로젝트 계획',
-      description: '새로운 브랜드 가이드라인에 맞춰 웹사이트 전체 리디자인 계획 수립',
-      assignee: '김철수',
-      dueDate: '2024-01-20',
-      startDate: '2024-01-10',
-      status: 'in-progress',
-      priority: 'high',
-      attachments: []
-    },
-    {
-      id: '2',
-      title: 'API 문서 업데이트',
-      description: '새로 추가된 엔드포인트들에 대한 API 문서 작성',
-      assignee: '이영희',
-      dueDate: '2024-01-18',
-      startDate: '2024-01-12',
-      status: 'todo',
-      priority: 'medium',
-      attachments: []
-    },
-    {
-      id: '3',
-      title: '데이터베이스 마이그레이션',
-      description: '사용자 테이블 스키마 변경 및 데이터 마이그레이션 작업',
-      assignee: '박민수',
-      dueDate: '2024-01-15',
-      startDate: '2024-01-08',
-      status: 'completed',
-      priority: 'high',
-      attachments: []
-    },
-    {
-      id: '4',
-      title: '모바일 앱 테스트',
-      description: 'iOS와 Android 버전 기능 테스트 및 버그 수정',
-      assignee: '정수진',
-      dueDate: '2024-01-22',
-      startDate: '2024-01-15',
-      status: 'todo',
-      priority: 'medium',
-      attachments: []
-    },
-    {
-      id: '5',
-      title: '보안 취약점 점검',
-      description: '시스템 전반적인 보안 취약점 검사 및 패치',
-      assignee: '김철수',
-      dueDate: '2024-01-25',
-      startDate: '2024-01-16',
-      status: 'in-progress',
-      priority: 'high',
-      attachments: []
-    }
-  ]);
+  const { isDarkMode } = useTheme();
+  const { tasks, users, addTask, updateTask, deleteTask } = useData();
 
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [currentView, setCurrentView] = useState<'list' | 'gantt'>('list');
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  
+  // 새 작업 추가 폼 state
+  const [newTask, setNewTask] = useState({
+    title: '',
+    description: '',
+    assignee: '',
+    priority: 'medium' as 'high' | 'medium' | 'low',
+    dueDate: '',
+    startDate: ''
+  });
 
   const filteredTasks = tasks.filter(task => {
     const matchesStatus = filterStatus === 'all' || task.status === filterStatus;
@@ -83,7 +40,7 @@ const Tasks: React.FC = () => {
     switch (status) {
       case 'completed': return '완료';
       case 'in-progress': return '진행중';
-      case 'todo': return '대기';
+      case 'pending': return '대기';
       default: return status;
     }
   };
@@ -92,7 +49,7 @@ const Tasks: React.FC = () => {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800';
       case 'in-progress': return 'bg-yellow-100 text-yellow-800';
-      case 'todo': return 'bg-red-100 text-red-800';
+      case 'pending': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -116,15 +73,37 @@ const Tasks: React.FC = () => {
   };
 
   const handleStatusChange = (taskId: string, newStatus: Task['status']) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId ? { ...task, status: newStatus } : task
-    ));
+    updateTask(taskId, { status: newStatus });
   };
 
   const handleFilesChange = (taskId: string, files: AttachedFile[]) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId ? { ...task, attachments: files } : task
-    ));
+    // DataContext의 Task 타입에 attachments가 없으므로 임시로 주석 처리
+    // updateTask(taskId, { attachments: files });
+  };
+
+  const handleAddTask = () => {
+    if (newTask.title.trim() && newTask.assignee && newTask.dueDate) {
+      addTask({
+        title: newTask.title,
+        description: newTask.description,
+        assignee: newTask.assignee,
+        priority: newTask.priority,
+        status: 'pending',
+        dueDate: newTask.dueDate
+      });
+      
+      // 폼 리셋
+      setNewTask({
+        title: '',
+        description: '',
+        assignee: '',
+        priority: 'medium',
+        dueDate: '',
+        startDate: ''
+      });
+      
+      setShowAddModal(false);
+    }
   };
 
   const ganttTasks = filteredTasks.filter(task => task.startDate).map(task => ({
@@ -192,7 +171,7 @@ const Tasks: React.FC = () => {
             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="all">전체</option>
-            <option value="todo">대기</option>
+            <option value="pending">대기</option>
             <option value="in-progress">진행중</option>
             <option value="completed">완료</option>
           </select>
@@ -251,14 +230,14 @@ const Tasks: React.FC = () => {
                   </button>
                   {task.status !== 'completed' && (
                     <button
-                      onClick={() => handleStatusChange(task.id, task.status === 'todo' ? 'in-progress' : 'completed')}
+                      onClick={() => handleStatusChange(task.id, task.status === 'pending' ? 'in-progress' : 'completed')}
                       className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                        task.status === 'todo' 
+                        task.status === 'pending' 
                           ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
                           : 'bg-green-100 text-green-800 hover:bg-green-200'
                       }`}
                     >
-                      {task.status === 'todo' ? '시작하기' : '완료하기'}
+                      {task.status === 'pending' ? '시작하기' : '완료하기'}
                     </button>
                   )}
                   {task.status === 'completed' && (
@@ -269,6 +248,17 @@ const Tasks: React.FC = () => {
                       재시작
                     </button>
                   )}
+                  <button
+                    onClick={() => {
+                      if (confirm('이 작업을 삭제하시겠습니까?')) {
+                        deleteTask(task.id);
+                      }
+                    }}
+                    className="px-3 py-1 rounded text-sm font-medium bg-red-100 text-red-800 hover:bg-red-200 transition-colors flex items-center"
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    삭제
+                  </button>
                 </div>
               </div>
               
@@ -304,7 +294,7 @@ const Tasks: React.FC = () => {
         <Card title="대기중" className="border-l-4 border-red-500">
           <div className="text-center">
             <div className="text-2xl font-bold text-red-600">
-              {tasks.filter(t => t.status === 'todo').length}
+              {tasks.filter(t => t.status === 'pending').length}
             </div>
             <div className="text-gray-600">개의 작업</div>
           </div>
@@ -338,6 +328,8 @@ const Tasks: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">작업 제목</label>
                 <input
                   type="text"
+                  value={newTask.title}
+                  onChange={(e) => setNewTask({...newTask, title: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   placeholder="작업 제목을 입력하세요"
                 />
@@ -345,6 +337,8 @@ const Tasks: React.FC = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">설명</label>
                 <textarea
+                  value={newTask.description}
+                  onChange={(e) => setNewTask({...newTask, description: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   rows={3}
                   placeholder="작업에 대한 상세 설명을 입력하세요"
@@ -353,16 +347,24 @@ const Tasks: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">담당자</label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                    <option>김철수</option>
-                    <option>이영희</option>
-                    <option>박민수</option>
-                    <option>정수진</option>
+                  <select 
+                    value={newTask.assignee}
+                    onChange={(e) => setNewTask({...newTask, assignee: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">담당자 선택</option>
+                    {users.map(user => (
+                      <option key={user.id} value={user.name}>{user.name}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">우선순위</label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                  <select 
+                    value={newTask.priority}
+                    onChange={(e) => setNewTask({...newTask, priority: e.target.value as 'high' | 'medium' | 'low'})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
                     <option value="low">낮음</option>
                     <option value="medium">보통</option>
                     <option value="high">높음</option>
@@ -374,6 +376,8 @@ const Tasks: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">시작일</label>
                   <input
                     type="date"
+                    value={newTask.startDate}
+                    onChange={(e) => setNewTask({...newTask, startDate: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -381,6 +385,8 @@ const Tasks: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">마감일</label>
                   <input
                     type="date"
+                    value={newTask.dueDate}
+                    onChange={(e) => setNewTask({...newTask, dueDate: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -400,7 +406,11 @@ const Tasks: React.FC = () => {
               >
                 취소
               </button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              <button 
+                onClick={handleAddTask}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!newTask.title.trim() || !newTask.assignee || !newTask.dueDate}
+              >
                 추가
               </button>
             </div>

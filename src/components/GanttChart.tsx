@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { format, addDays, differenceInDays, parseISO } from 'date-fns';
-import { Task } from '../types';
+import { Task } from '../contexts/DataContext';
 
 interface GanttTask extends Task {
   startDate: string;

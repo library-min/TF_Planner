@@ -74,6 +74,39 @@ TF-Planner는 Task Force(프로젝트 팀)의 효율적인 협업을 위해 설�
 - Node.js 18.0.0 이상
 - npm 또는 yarn
 
+### 설치 및 실행
+
+1. **프로젝트 복제**
+   ```bash
+   git clone https://github.com/your-username/tf-planner.git
+   cd tf-planner
+   ```
+
+2. **의존성 설치**
+   ```bash
+   npm install
+   ```
+
+3. **개발 서버 실행**
+   ```bash
+   npm run dev
+   ```
+
+4. **브라우저에서 접속**
+   ```
+   http://localhost:5173
+   ```
+
+### 빌드 및 배포
+
+```bash
+# 프로덕션 빌드
+npm run build
+
+# 빌드 결과 미리보기
+npm run preview
+```
+
 ## 📱 주요 화면
 
 ### 로그인 화면

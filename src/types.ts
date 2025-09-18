@@ -4,7 +4,7 @@ export interface User {
   email: string;
   password: string;
   name: string;
-  role: 'admin' | 'user';
+  role: string;
   avatar: string;
   department: string;
 }
@@ -14,7 +14,7 @@ export interface Task {
   title: string;
   assignee: string;
   dueDate: string;
-  status: 'todo' | 'in-progress' | 'completed';
+  status: 'pending' | 'in-progress' | 'completed';
   priority: 'high' | 'medium' | 'low';
   description?: string;
   startDate?: string;

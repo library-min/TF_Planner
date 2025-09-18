@@ -1,53 +1,16 @@
 import React, { useState } from 'react';
 import { Plus, Search, Edit, Trash2, UserCheck, UserX, Shield, User as UserIcon } from 'lucide-react';
 import Card from '../components/Card';
-import { User } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { useData, User } from '../contexts/DataContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const UserManagement: React.FC = () => {
   const { t } = useLanguage();
-  const [users, setUsers] = useState<User[]>([
-    {
-      name: '김철수',
-      email: 'kim.cs@company.com',
-      password: '********',
-      role: 'admin',
-      avatar: '',
-      department: '개발팀'
-    },
-    {
-      name: '이영희',
-      email: 'lee.yh@company.com',
-      password: '********',
-      role: 'user',
-      avatar: '',
-      department: 'UX/UI팀'
-    },
-    {
-      name: '박민수',
-      email: 'park.ms@company.com',
-      password: '********',
-      role: 'user',
-      avatar: '',
-      department: '백엔드팀'
-    },
-    {
-      name: '정수진',
-      email: 'jung.sj@company.com',
-      password: '********',
-      role: 'user',
-      avatar: '',
-      department: '프론트엔드팀'
-    },
-    {
-      name: '최영수',
-      email: 'choi.ys@company.com',
-      password: '********',
-      role: 'admin',
-      avatar: '',
-      department: '관리팀'
-    }
-  ]);
+  const { isDarkMode } = useTheme();
+  const { isAdmin } = useAuth();
+  const { users, addUser, updateUser, deleteUser } = useData();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
@@ -72,11 +35,14 @@ const UserManagement: React.FC = () => {
 
   const handleAddUser = () => {
     if (formData.name && formData.email && formData.password && formData.department) {
-      const newUser: User = {
-        ...formData,
-        avatar: ''
-      };
-      setUsers([...users, newUser]);
+      addUser({
+        name: formData.name,
+        email: formData.email,
+        role: formData.role,
+        department: formData.department,
+        joinDate: new Date().toISOString(),
+        isActive: true
+      });
       setFormData({ name: '', email: '', password: '', role: 'user', department: '' });
       setShowAddModal(false);
     }
@@ -87,17 +53,26 @@ const UserManagement: React.FC = () => {
       const updatedUsers = users.map(user =>
         user.email === selectedUser.email ? { ...user, ...formData } : user
       );
-      setUsers(updatedUsers);
+      // setUsers(updatedUsers);
+      updatedUsers.forEach(user => {
+        if (user.email === selectedUser.email) {
+          updateUser(user.id, formData);
+        }
+      });
       setFormData({ name: '', email: '', password: '', role: 'user', department: '' });
       setSelectedUser(null);
       setShowEditModal(false);
     }
   };
 
-  const handleDeleteUser = (userEmail: string) => {
+  const handleDeleteUser = (userId: string) => {
     if (window.confirm(t('users.confirmDelete'))) {
-      setUsers(users.filter(user => user.email !== userEmail));
+      deleteUser(userId);
     }
+  };
+
+  const handleToggleUserStatus = (userId: string, currentStatus: boolean) => {
+    updateUser(userId, { isActive: !currentStatus });
   };
 
   const handleEditClick = (user: User) => {
@@ -105,8 +80,8 @@ const UserManagement: React.FC = () => {
     setFormData({
       name: user.name,
       email: user.email,
-      password: user.password,
-      role: user.role,
+      password: '',
+      role: user.role as 'admin' | 'user',
       department: user.department
     });
     setShowEditModal(true);
@@ -132,16 +107,19 @@ const UserManagement: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900">{t('users.title')}</h1>
           <p className="text-gray-600 mt-2">{t('users.subtitle')}</p>
         </div>
-        <button
-          onClick={() => {
-            resetForm();
-            setShowAddModal(true);
-          }}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          {t('users.addUser')}
-        </button>
+        {/* 관리자만 사용자 추가 가능 */}
+        {isAdmin && (
+          <button
+            onClick={() => {
+              resetForm();
+              setShowAddModal(true);
+            }}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            {t('users.addUser')}
+          </button>
+        )}
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4">
@@ -178,7 +156,8 @@ const UserManagement: React.FC = () => {
                 <th className="text-left py-3 px-4 font-medium text-gray-700">{t('users.role')}</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-700">{t('users.department')}</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-700">{t('users.status')}</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700">{t('users.actions')}</th>
+                {/* 관리자만 액션 컬럼 표시 */}
+                {isAdmin && <th className="text-left py-3 px-4 font-medium text-gray-700">{t('users.actions')}</th>}
               </tr>
             </thead>
             <tbody>
@@ -201,28 +180,46 @@ const UserManagement: React.FC = () => {
                   </td>
                   <td className="py-3 px-4 text-gray-600">{user.department}</td>
                   <td className="py-3 px-4">
-                    <span className="px-2 py-1 bg-green-100 text-green-600 rounded text-xs font-medium">
-                      {t('users.active')}
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      user.isActive 
+                        ? 'bg-green-100 text-green-600' 
+                        : 'bg-red-100 text-red-600'
+                    }`}>
+                      {user.isActive ? t('users.active') : '비활성'}
                     </span>
                   </td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleEditClick(user)}
-                        className="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors"
-                        title={t('users.edit')}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteUser(user.email)}
-                        className="p-1 text-red-600 hover:bg-red-100 rounded transition-colors"
-                        title={t('users.delete')}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
+                  {/* 관리자만 액션 버튼들 표시 */}
+                  {isAdmin && (
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleToggleUserStatus(user.id, user.isActive)}
+                          className={`p-1 rounded transition-colors ${
+                            user.isActive 
+                              ? 'text-green-600 hover:bg-green-100' 
+                              : 'text-red-600 hover:bg-red-100'
+                          }`}
+                          title={user.isActive ? '비활성화' : '활성화'}
+                        >
+                          {user.isActive ? <UserCheck className="w-4 h-4" /> : <UserX className="w-4 h-4" />}
+                        </button>
+                        <button
+                          onClick={() => handleEditClick(user)}
+                          className="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+                          title={t('users.edit')}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteUser(user.id)}
+                          className="p-1 text-red-600 hover:bg-red-100 rounded transition-colors"
+                          title={t('users.delete')}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -261,15 +258,15 @@ const UserManagement: React.FC = () => {
         <Card title={t('users.active')} className="border-l-4 border-green-500">
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600">
-              {users.length}
+              {users.filter(u => u.isActive).length}
             </div>
             <div className="text-gray-600">명</div>
           </div>
         </Card>
       </div>
 
-      {/* 사용자 추가 모달 */}
-      {showAddModal && (
+      {/* 사용자 추가 모달 - 관리자만 */}
+      {isAdmin && showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">{t('addUser.title')}</h2>
@@ -348,8 +345,8 @@ const UserManagement: React.FC = () => {
         </div>
       )}
 
-      {/* 사용자 편집 모달 */}
-      {showEditModal && selectedUser && (
+      {/* 사용자 편집 모달 - 관리자만 */}
+      {isAdmin && showEditModal && selectedUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">사용자 편집</h2>

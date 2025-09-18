@@ -138,14 +138,27 @@ const translations = {
     'addUser.add': '추가',
     
     // Calendar
-    'calendar.title': '캘린더',
-    'calendar.subtitle': '일정을 한눈에 확인하고 관리하세요',
+    'calendar.title': '일정 캘린더',
+    'calendar.subtitle': '팀 일정을 한눈에 확인하고 관리하세요',
     'calendar.addEvent': '새 일정 추가',
     'calendar.today': '오늘',
     'calendar.month': '월',
     'calendar.week': '주',
     'calendar.day': '일',
-    'calendar.noEvents': '이 날짜에는 일정이 없습니다',
+    'calendar.noEvents': '이 날짜에 등록된 일정이 없습니다',
+    'calendar.eventTitle': '제목',
+    'calendar.eventDate': '날짜',
+    'calendar.eventTime': '시간',
+    'calendar.eventDescription': '설명',
+    'calendar.eventTitlePlaceholder': '일정 제목을 입력하세요',
+    'calendar.eventDescriptionPlaceholder': '일정에 대한 설명을 입력하세요',
+    'calendar.moreEvents': '개 더',
+    'calendar.scheduleFor': '일정',
+    'calendar.close': '닫기',
+    'calendar.edit': '수정',
+    'calendar.cancel': '취소',
+    'calendar.add': '추가',
+    'calendar.newEvent': '새 일정 추가',
     
     // File Attachment
     'fileAttachment.dragDrop': '파일을 여기로 드래그하거나 클릭하여 선택하세요',
@@ -174,6 +187,8 @@ const translations = {
     'common.loading': '로딩 중...',
     'common.error': '오류가 발생했습니다',
     'common.success': '성공적으로 완료되었습니다',
+    'common.user': '사용자',
+    'common.logout': '로그아웃',
   },
   en: {
     // Navigation
@@ -304,14 +319,27 @@ const translations = {
     'addUser.add': 'Add',
     
     // Calendar
-    'calendar.title': 'Calendar',
-    'calendar.subtitle': 'View and manage your schedule at a glance',
+    'calendar.title': 'Schedule Calendar',
+    'calendar.subtitle': 'View and manage your team schedule at a glance',
     'calendar.addEvent': 'Add New Event',
     'calendar.today': 'Today',
     'calendar.month': 'Month',
     'calendar.week': 'Week',
     'calendar.day': 'Day',
-    'calendar.noEvents': 'No events on this date',
+    'calendar.noEvents': 'No events registered on this date',
+    'calendar.eventTitle': 'Title',
+    'calendar.eventDate': 'Date',
+    'calendar.eventTime': 'Time',
+    'calendar.eventDescription': 'Description',
+    'calendar.eventTitlePlaceholder': 'Enter event title',
+    'calendar.eventDescriptionPlaceholder': 'Enter event description',
+    'calendar.moreEvents': 'more',
+    'calendar.scheduleFor': 'Schedule',
+    'calendar.close': 'Close',
+    'calendar.edit': 'Edit',
+    'calendar.cancel': 'Cancel',
+    'calendar.add': 'Add',
+    'calendar.newEvent': 'Add New Event',
     
     // File Attachment
     'fileAttachment.dragDrop': 'Drag files here or click to select',
@@ -340,6 +368,8 @@ const translations = {
     'common.loading': 'Loading...',
     'common.error': 'An error occurred',
     'common.success': 'Successfully completed',
+    'common.user': 'User',
+    'common.logout': 'Logout',
   }
 };
 

@@ -3,66 +3,28 @@ import { ChevronLeft, ChevronRight, Plus, Clock, Calendar as CalendarIcon, Users
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, isToday, addMonths, subMonths } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import Card from '../components/Card';
-import { Event } from '../types';
+import { useData, Event } from '../contexts/DataContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Calendar: React.FC = () => {
+  const { isDarkMode } = useTheme();
+  const { events, addEvent, updateEvent, deleteEvent } = useData();
+  const { language, t } = useLanguage();
+  
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEventModal, setShowEventModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-
-  const [events] = useState<Event[]>([
-    {
-      id: '1',
-      title: '주간 팀 미팅',
-      date: '2024-01-15',
-      time: '10:00',
-      description: '프로젝트 진행 상황 공유 및 다음 주 계획 수립'
-    },
-    {
-      id: '2',
-      title: '클라이언트 미팅',
-      date: '2024-01-17',
-      time: '14:00',
-      description: '프로젝트 중간 발표 및 피드백 수집'
-    },
-    {
-      id: '3',
-      title: '디자인 리뷰',
-      date: '2024-01-18',
-      time: '15:30',
-      description: '새로운 UI/UX 디자인 최종 검토'
-    },
-    {
-      id: '4',
-      title: '코드 리뷰',
-      date: '2024-01-19',
-      time: '11:00',
-      description: '백엔드 API 코드 리뷰 및 최적화 논의'
-    },
-    {
-      id: '5',
-      title: '프로젝트 마일스톤 체크',
-      date: '2024-01-22',
-      time: '16:00',
-      description: '1차 개발 완료 체크 및 다음 단계 계획'
-    },
-    {
-      id: '6',
-      title: '보안 점검 회의',
-      date: '2024-01-24',
-      time: '09:00',
-      description: '시스템 보안 취약점 점검 및 대응 방안 논의'
-    },
-    {
-      id: '7',
-      title: '월간 회고',
-      date: '2024-01-30',
-      time: '17:00',
-      description: '1월 한 달간의 성과 및 개선점 논의'
-    }
-  ]);
+  
+  // 새 이벤트 추가 폼 state
+  const [newEvent, setNewEvent] = useState({
+    title: '',
+    description: '',
+    date: '',
+    time: ''
+  });
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -95,6 +57,27 @@ const Calendar: React.FC = () => {
     setShowEventModal(true);
   };
 
+  const handleAddEvent = () => {
+    if (newEvent.title.trim() && newEvent.date && newEvent.time) {
+      addEvent({
+        title: newEvent.title,
+        description: newEvent.description,
+        date: newEvent.date,
+        time: newEvent.time
+      });
+      
+      // 폼 리셋
+      setNewEvent({
+        title: '',
+        description: '',
+        date: '',
+        time: ''
+      });
+      
+      setShowAddModal(false);
+    }
+  };
+
   const getDayClassName = (date: Date) => {
     let className = 'min-h-[100px] p-2 border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors';
     
@@ -117,15 +100,15 @@ const Calendar: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">일정 캘린더</h1>
-          <p className="text-gray-600 mt-2">팀 일정을 한눈에 확인하고 관리하세요</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('calendar.title')}</h1>
+          <p className="text-gray-600 mt-2">{t('calendar.subtitle')}</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
         >
           <Plus className="w-5 h-5 mr-2" />
-          새 일정 추가
+          {t('calendar.addEvent')}
         </button>
       </div>
 
@@ -139,7 +122,7 @@ const Calendar: React.FC = () => {
           </button>
           
           <h2 className="text-xl font-bold text-gray-900">
-            {format(currentDate, 'yyyy년 MMMM', { locale: ko })}
+            {format(currentDate, language === 'ko' ? 'yyyy년 MMMM' : 'MMMM yyyy', { locale: language === 'ko' ? ko : undefined })}
           </h2>
           
           <button
@@ -151,7 +134,7 @@ const Calendar: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-7 gap-0 mb-4">
-          {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
+          {(language === 'ko' ? ['일', '월', '화', '수', '목', '금', '토'] : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']).map((day) => (
             <div key={day} className="p-3 text-center font-semibold text-gray-700 bg-gray-100">
               {day}
             </div>
@@ -206,7 +189,7 @@ const Calendar: React.FC = () => {
                   ))}
                   {dayEvents.length > 2 && (
                     <div className="text-xs text-gray-500 text-center">
-                      +{dayEvents.length - 2}개 더
+                      +{dayEvents.length - 2}{t('calendar.moreEvents')}
                     </div>
                   )}
                 </div>
@@ -229,7 +212,7 @@ const Calendar: React.FC = () => {
 
       {/* 선택된 날짜의 일정 목록 */}
       {selectedDate && (
-        <Card title={`${format(selectedDate, 'M월 d일', { locale: ko })} 일정`}>
+        <Card title={`${format(selectedDate, language === 'ko' ? 'M월 d일' : 'MMM d', { locale: language === 'ko' ? ko : undefined })} ${t('calendar.scheduleFor')}`}>
           <div className="space-y-3">
             {getEventsForDate(selectedDate).length > 0 ? (
               getEventsForDate(selectedDate).map((event) => (
@@ -255,7 +238,7 @@ const Calendar: React.FC = () => {
             ) : (
               <div className="text-center py-8 text-gray-500">
                 <CalendarIcon className="w-12 h-12 mx-auto mb-2" />
-                <p>이 날짜에 등록된 일정이 없습니다.</p>
+                <p>{t('calendar.noEvents')}</p>
               </div>
             )}
           </div>
@@ -266,37 +249,44 @@ const Calendar: React.FC = () => {
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">새 일정 추가</h2>
+            <h2 className="text-xl font-bold mb-4">{t('calendar.newEvent')}</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">제목</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('calendar.eventTitle')}</label>
                 <input
                   type="text"
+                  value={newEvent.title}
+                  onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="일정 제목을 입력하세요"
+                  placeholder={t('calendar.eventTitlePlaceholder')}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">날짜</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('calendar.eventDate')}</label>
                 <input
                   type="date"
+                  value={newEvent.date || (selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '')}
+                  onChange={(e) => setNewEvent({...newEvent, date: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  defaultValue={selectedDate ? format(selectedDate, 'yyyy-MM-dd') : ''}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">시간</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('calendar.eventTime')}</label>
                 <input
                   type="time"
+                  value={newEvent.time}
+                  onChange={(e) => setNewEvent({...newEvent, time: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">설명</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('calendar.eventDescription')}</label>
                 <textarea
+                  value={newEvent.description}
+                  onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   rows={3}
-                  placeholder="일정에 대한 설명을 입력하세요"
+                  placeholder={t('calendar.eventDescriptionPlaceholder')}
                 ></textarea>
               </div>
             </div>
@@ -305,10 +295,14 @@ const Calendar: React.FC = () => {
                 onClick={() => setShowAddModal(false)}
                 className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                취소
+                {t('calendar.cancel')}
               </button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                추가
+              <button 
+                onClick={handleAddEvent}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!newEvent.title.trim() || !newEvent.date || !newEvent.time}
+              >
+                {t('calendar.add')}
               </button>
             </div>
           </div>
@@ -323,7 +317,7 @@ const Calendar: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center text-gray-600">
                 <CalendarIcon className="w-5 h-5 mr-3" />
-                <span>{format(new Date(selectedEvent.date), 'yyyy년 M월 d일', { locale: ko })}</span>
+                <span>{format(new Date(selectedEvent.date), language === 'ko' ? 'yyyy년 M월 d일' : 'MMM d, yyyy', { locale: language === 'ko' ? ko : undefined })}</span>
               </div>
               {selectedEvent.time && (
                 <div className="flex items-center text-gray-600">
@@ -343,10 +337,10 @@ const Calendar: React.FC = () => {
                 onClick={() => setShowEventModal(false)}
                 className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                닫기
+                {t('calendar.close')}
               </button>
               <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                수정
+                {t('calendar.edit')}
               </button>
             </div>
           </div>
