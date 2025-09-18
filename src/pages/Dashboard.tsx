@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, CheckCircle, Clock, Users, TrendingUp } from 'lucide-react';
 import Card from '../components/Card';
 import GanttChart from '../components/GanttChart';
@@ -90,12 +90,226 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const [animatedCounts, setAnimatedCounts] = useState({
+    completed: 0,
+    inProgress: 0,
+    pending: 0
+  });
+  
+  const [isAnimating, setIsAnimating] = useState(false);
+  
+  const actualCounts = {
+    completed: getCompletedTasksCount(),
+    inProgress: getInProgressTasksCount(),
+    pending: tasks.filter(task => task.status === 'pending').length
+  };
+  
+  const totalTasks = actualCounts.completed + actualCounts.inProgress + actualCounts.pending;
+  
+  useEffect(() => {
+    setIsAnimating(true);
+    const animationDuration = 1500;
+    const steps = 60;
+    const stepDuration = animationDuration / steps;
+    
+    let currentStep = 0;
+    
+    const timer = setInterval(() => {
+      currentStep++;
+      const progress = currentStep / steps;
+      
+      setAnimatedCounts({
+        completed: Math.floor(actualCounts.completed * progress),
+        inProgress: Math.floor(actualCounts.inProgress * progress),
+        pending: Math.floor(actualCounts.pending * progress)
+      });
+      
+      if (currentStep >= steps) {
+        setAnimatedCounts(actualCounts);
+        setIsAnimating(false);
+        clearInterval(timer);
+      }
+    }, stepDuration);
+    
+    return () => clearInterval(timer);
+  }, [actualCounts.completed, actualCounts.inProgress, actualCounts.pending]);
+  
+  const getPercentage = (value: number) => {
+    return totalTasks > 0 ? Math.round((value / totalTasks) * 100) : 0;
+  };
+
   return (
     <div className="space-y-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">{t('dashboard.title')}</h1>
         <p className="text-gray-600 mt-2">{t('dashboard.subtitle')}</p>
       </div>
+      
+      {/* Animated Progress Chart */}
+      <Card title="작업 현황 차트">
+        <div className="space-y-6">
+          {/* Circular Progress Chart */}
+          <div className="flex justify-center">
+            <div className="relative w-48 h-48">
+              <svg className="w-48 h-48 transform -rotate-90" viewBox="0 0 100 100">
+                {/* Background Circle */}
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="35"
+                  fill="none"
+                  stroke="#f3f4f6"
+                  strokeWidth="8"
+                />
+                
+                {/* Completed Tasks Arc */}
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="35"
+                  fill="none"
+                  stroke="#10b981"
+                  strokeWidth="8"
+                  strokeDasharray={`${getPercentage(animatedCounts.completed) * 2.2} 220`}
+                  strokeDashoffset="0"
+                  className="transition-all duration-500 ease-out"
+                  style={{
+                    filter: isAnimating ? 'drop-shadow(0 0 6px #10b981)' : 'none'
+                  }}
+                />
+                
+                {/* In Progress Tasks Arc */}
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="35"
+                  fill="none"
+                  stroke="#f59e0b"
+                  strokeWidth="8"
+                  strokeDasharray={`${getPercentage(animatedCounts.inProgress) * 2.2} 220`}
+                  strokeDashoffset={`-${getPercentage(animatedCounts.completed) * 2.2}`}
+                  className="transition-all duration-500 ease-out"
+                  style={{
+                    filter: isAnimating ? 'drop-shadow(0 0 6px #f59e0b)' : 'none'
+                  }}
+                />
+                
+                {/* Pending Tasks Arc */}
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="35"
+                  fill="none"
+                  stroke="#ef4444"
+                  strokeWidth="8"
+                  strokeDasharray={`${getPercentage(animatedCounts.pending) * 2.2} 220`}
+                  strokeDashoffset={`-${(getPercentage(animatedCounts.completed) + getPercentage(animatedCounts.inProgress)) * 2.2}`}
+                  className="transition-all duration-500 ease-out"
+                  style={{
+                    filter: isAnimating ? 'drop-shadow(0 0 6px #ef4444)' : 'none'
+                  }}
+                />
+              </svg>
+              
+              {/* Center Text */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center">
+                  <div className={`text-3xl font-bold text-gray-900 transition-all duration-300 ${
+                    isAnimating ? 'scale-110' : 'scale-100'
+                  }`}>
+                    {animatedCounts.completed + animatedCounts.inProgress + animatedCounts.pending}
+                  </div>
+                  <div className="text-sm text-gray-500">총 작업</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Legend */}
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className="flex items-center justify-center mb-2">
+                <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
+                <span className="text-sm font-medium text-gray-700">완료</span>
+              </div>
+              <div className={`text-2xl font-bold text-green-600 transition-all duration-300 ${
+                isAnimating ? 'scale-110' : 'scale-100'
+              }`}>
+                {animatedCounts.completed}
+              </div>
+              <div className="text-xs text-gray-500">{getPercentage(animatedCounts.completed)}%</div>
+            </div>
+            
+            <div className="text-center">
+              <div className="flex items-center justify-center mb-2">
+                <div className="w-4 h-4 bg-yellow-500 rounded-full mr-2"></div>
+                <span className="text-sm font-medium text-gray-700">진행중</span>
+              </div>
+              <div className={`text-2xl font-bold text-yellow-600 transition-all duration-300 ${
+                isAnimating ? 'scale-110' : 'scale-100'
+              }`}>
+                {animatedCounts.inProgress}
+              </div>
+              <div className="text-xs text-gray-500">{getPercentage(animatedCounts.inProgress)}%</div>
+            </div>
+            
+            <div className="text-center">
+              <div className="flex items-center justify-center mb-2">
+                <div className="w-4 h-4 bg-red-500 rounded-full mr-2"></div>
+                <span className="text-sm font-medium text-gray-700">대기</span>
+              </div>
+              <div className={`text-2xl font-bold text-red-600 transition-all duration-300 ${
+                isAnimating ? 'scale-110' : 'scale-100'
+              }`}>
+                {animatedCounts.pending}
+              </div>
+              <div className="text-xs text-gray-500">{getPercentage(animatedCounts.pending)}%</div>
+            </div>
+          </div>
+          
+          {/* Progress Bars */}
+          <div className="space-y-3">
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-gray-700">완료된 작업</span>
+                <span className="text-green-600 font-medium">{getPercentage(animatedCounts.completed)}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-green-500 h-2 rounded-full transition-all duration-1000 ease-out"
+                  style={{ width: `${getPercentage(animatedCounts.completed)}%` }}
+                ></div>
+              </div>
+            </div>
+            
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-gray-700">진행중인 작업</span>
+                <span className="text-yellow-600 font-medium">{getPercentage(animatedCounts.inProgress)}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-yellow-500 h-2 rounded-full transition-all duration-1000 ease-out"
+                  style={{ width: `${getPercentage(animatedCounts.inProgress)}%` }}
+                ></div>
+              </div>
+            </div>
+            
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-gray-700">대기중인 작업</span>
+                <span className="text-red-600 font-medium">{getPercentage(animatedCounts.pending)}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-red-500 h-2 rounded-full transition-all duration-1000 ease-out"
+                  style={{ width: `${getPercentage(animatedCounts.pending)}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
         <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
@@ -179,48 +393,6 @@ const Dashboard: React.FC = () => {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card title={t('dashboard.weeklyProgress')}>
-          <div className="space-y-3">
-            {weeklyProgressData.map((day) => (
-              <div key={day.day} className="flex items-center justify-between">
-                <span className="text-gray-700 font-medium">{day.day}요일</span>
-                <div className="flex items-center space-x-3">
-                  <div className="w-20 bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-green-500 h-2 rounded-full" 
-                      style={{ width: `${(day.completed / day.total) * 100}%` }}
-                    ></div>
-                  </div>
-                  <span className="text-sm text-gray-600">
-                    {day.completed}/{day.total}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <Card title={t('dashboard.projectStatus')}>
-          <div className="space-y-4">
-            {projects.map((project) => (
-              <div key={project.id} className="p-4 bg-gray-50 rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                  <h4 className="font-medium text-gray-900">{project.name}</h4>
-                  <span className="text-sm text-gray-600">{project.progress}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-blue-600 h-2 rounded-full" 
-                    style={{ width: `${project.progress}%` }}
-                  ></div>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">마감: {project.dueDate}</p>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
 
       {/* 관리자만 팀 멤버 현황 볼 수 있음 */}
       {isAdmin && (
@@ -244,13 +416,6 @@ const Dashboard: React.FC = () => {
         </Card>
       )}
 
-      {/* 관리자만 간트차트 볼 수 있음 */}
-      {isAdmin && (
-        <GanttChart 
-          tasks={allTasks.map(task => ({ ...task, startDate: task.startDate || task.createdAt }))} 
-          className="mt-6"
-        />
-      )}
     </div>
   );
 };

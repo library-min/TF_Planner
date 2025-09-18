@@ -6,6 +6,7 @@ import {
   FileText, 
   Calendar, 
   Users,
+  MessageSquare,
   Menu,
   X
 } from 'lucide-react';
@@ -25,6 +26,7 @@ const Navigation: React.FC = () => {
     { path: '/tasks', icon: CheckSquare, label: t('nav.tasks') },
     { path: '/meetings', icon: FileText, label: t('nav.meetings') },
     { path: '/calendar', icon: Calendar, label: t('nav.calendar') },
+    { path: '/chat', icon: MessageSquare, label: '채팅' },
     { path: '/team', icon: Users, label: t('nav.userManagement') },
   ];
 
@@ -54,46 +56,13 @@ const Navigation: React.FC = () => {
       <nav className={`fixed left-0 top-0 h-full w-64 ${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg transform transition-all duration-300 ease-in-out z-40 ${
         isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}>
-        {/* Top Controls */}
-        <div className={`p-4 border-b ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}`}>
-          {/* Language Selector */}
-          <div className="flex items-center justify-between mb-3">
-            <span className={`text-xs font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>Language</span>
-            <div className={`flex rounded border ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-100 border-gray-300'}`}>
-              <button
-                onClick={() => setLanguage('ko')}
-                className={`px-2 py-1 text-xs rounded-l ${
-                  language === 'ko' 
-                    ? 'bg-blue-500 text-white' 
-                    : isDarkMode
-                      ? 'text-gray-300 hover:bg-gray-600'
-                      : 'text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                한국어
-              </button>
-              <button
-                onClick={() => setLanguage('en')}
-                className={`px-2 py-1 text-xs rounded-r ${
-                  language === 'en' 
-                    ? 'bg-blue-500 text-white' 
-                    : isDarkMode
-                      ? 'text-gray-300 hover:bg-gray-600'
-                      : 'text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                English
-              </button>
-            </div>
-          </div>
-        </div>
 
-        <div className="p-6">
+        <div className="p-4">
           <Link to="/" className="block">
             <img 
               src="/Logo(2).svg" 
               alt="TF-Planner" 
-              className="h-16 w-auto cursor-pointer hover:opacity-80 transition-opacity"
+              className="h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity scale-150 transform translate-x-12"
             />
           </Link>
         </div>
@@ -144,14 +113,47 @@ const Navigation: React.FC = () => {
             </div>
             <button 
               onClick={logout}
-              className={`w-full mt-3 text-xs py-1 px-2 rounded transition-colors ${
+              className={`w-full mt-3 text-xs py-2 px-3 rounded transition-colors ${
                 isDarkMode 
-                  ? 'text-gray-300 hover:text-gray-100 hover:bg-gray-600' 
-                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'
+                  ? 'bg-red-600 hover:bg-red-700 text-white' 
+                  : 'bg-red-500 hover:bg-red-600 text-white'
               }`}
             >
               {t('common.logout')}
             </button>
+          </div>
+          
+          {/* Language Selector Box */}
+          <div className={`p-3 rounded-lg mt-3 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+            <div className="flex items-center justify-between">
+              <span className={`text-xs font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>Language</span>
+              <div className={`flex rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500' : 'bg-gray-100 border-gray-300'}`}>
+                <button
+                  onClick={() => setLanguage('ko')}
+                  className={`px-2 py-1 text-xs rounded-l ${
+                    language === 'ko' 
+                      ? 'bg-blue-500 text-white' 
+                      : isDarkMode
+                        ? 'text-gray-300 hover:bg-gray-500'
+                        : 'text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  한국어
+                </button>
+                <button
+                  onClick={() => setLanguage('en')}
+                  className={`px-2 py-1 text-xs rounded-r ${
+                    language === 'en' 
+                      ? 'bg-blue-500 text-white' 
+                      : isDarkMode
+                        ? 'text-gray-300 hover:bg-gray-500'
+                        : 'text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  English
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </nav>

@@ -83,6 +83,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       status: 'completed',
       assignee: '김철수',
       dueDate: '2024-01-15',
+      startDate: '2024-01-01',
       createdAt: '2024-01-01'
     },
     {
@@ -93,6 +94,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       status: 'completed',
       assignee: '박영희',
       dueDate: '2024-01-20',
+      startDate: '2024-01-05',
       createdAt: '2024-01-02'
     },
     {
@@ -103,6 +105,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       status: 'in-progress',
       assignee: '이민수',
       dueDate: '2024-01-25',
+      startDate: '2024-01-10',
       createdAt: '2024-01-03'
     },
     {
@@ -113,6 +116,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       status: 'in-progress',
       assignee: '최지영',
       dueDate: '2024-01-30',
+      startDate: '2024-01-15',
       createdAt: '2024-01-04'
     },
     {
@@ -123,6 +127,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       status: 'pending',
       assignee: '김철수',
       dueDate: '2024-02-05',
+      startDate: '2024-01-20',
       createdAt: '2024-01-05'
     }
   ]);

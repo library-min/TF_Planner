@@ -18,6 +18,16 @@ const Tasks: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [currentView, setCurrentView] = useState<'list' | 'gantt'>('list');
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editTask, setEditTask] = useState({
+    title: '',
+    description: '',
+    assignee: '',
+    priority: 'medium' as 'high' | 'medium' | 'low',
+    dueDate: '',
+    startDate: ''
+  });
   
   // 새 작업 추가 폼 state
   const [newTask, setNewTask] = useState({
@@ -106,9 +116,38 @@ const Tasks: React.FC = () => {
     }
   };
 
-  const ganttTasks = filteredTasks.filter(task => task.startDate).map(task => ({
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setEditTask({
+      title: task.title,
+      description: task.description || '',
+      assignee: task.assignee,
+      priority: task.priority,
+      dueDate: task.dueDate,
+      startDate: task.startDate || ''
+    });
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (editingTask && editTask.title.trim() && editTask.assignee && editTask.dueDate) {
+      updateTask(editingTask.id, {
+        title: editTask.title,
+        description: editTask.description,
+        assignee: editTask.assignee,
+        priority: editTask.priority,
+        dueDate: editTask.dueDate,
+        startDate: editTask.startDate
+      });
+      
+      setShowEditModal(false);
+      setEditingTask(null);
+    }
+  };
+
+  const ganttTasks = filteredTasks.map(task => ({
     ...task,
-    startDate: task.startDate!
+    startDate: task.startDate || task.createdAt
   }));
 
   return (
@@ -221,6 +260,12 @@ const Tasks: React.FC = () => {
                 </div>
                 
                 <div className="flex gap-2 ml-4">
+                  <button
+                    onClick={() => handleEditTask(task)}
+                    className="px-3 py-1 rounded text-sm font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors flex items-center"
+                  >
+                    수정
+                  </button>
                   <button
                     onClick={() => setSelectedTaskId(selectedTaskId === task.id ? null : task.id)}
                     className="px-3 py-1 rounded text-sm font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors flex items-center"
@@ -412,6 +457,99 @@ const Tasks: React.FC = () => {
                 disabled={!newTask.title.trim() || !newTask.assignee || !newTask.dueDate}
               >
                 추가
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 작업 수정 모달 */}
+      {showEditModal && editingTask && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4">작업 수정</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">작업 제목</label>
+                <input
+                  type="text"
+                  value={editTask.title}
+                  onChange={(e) => setEditTask({...editTask, title: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="작업 제목을 입력하세요"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">작업 설명</label>
+                <textarea
+                  value={editTask.description}
+                  onChange={(e) => setEditTask({...editTask, description: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  rows={3}
+                  placeholder="작업에 대한 상세 설명을 입력하세요 (선택사항)"
+                ></textarea>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">담당자</label>
+                  <select
+                    value={editTask.assignee}
+                    onChange={(e) => setEditTask({...editTask, assignee: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">담당자를 선택하세요</option>
+                    {users.map((user) => (
+                      <option key={user.id} value={user.name}>{user.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">우선순위</label>
+                  <select
+                    value={editTask.priority}
+                    onChange={(e) => setEditTask({...editTask, priority: e.target.value as 'high' | 'medium' | 'low'})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="low">낮음</option>
+                    <option value="medium">보통</option>
+                    <option value="high">높음</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">시작일 (선택사항)</label>
+                  <input
+                    type="date"
+                    value={editTask.startDate}
+                    onChange={(e) => setEditTask({...editTask, startDate: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">마감일</label>
+                  <input
+                    type="date"
+                    value={editTask.dueDate}
+                    onChange={(e) => setEditTask({...editTask, dueDate: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                취소
+              </button>
+              <button 
+                onClick={handleSaveEdit}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!editTask.title.trim() || !editTask.assignee || !editTask.dueDate}
+              >
+                저장
               </button>
             </div>
           </div>

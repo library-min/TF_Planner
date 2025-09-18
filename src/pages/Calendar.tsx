@@ -17,6 +17,13 @@ const Calendar: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEventModal, setShowEventModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editEvent, setEditEvent] = useState({
+    title: '',
+    description: '',
+    date: '',
+    time: ''
+  });
   
   // 새 이벤트 추가 폼 state
   const [newEvent, setNewEvent] = useState({
@@ -54,6 +61,12 @@ const Calendar: React.FC = () => {
 
   const handleEventClick = (event: Event) => {
     setSelectedEvent(event);
+    setEditEvent({
+      title: event.title,
+      description: event.description || '',
+      date: event.date,
+      time: event.time || ''
+    });
     setShowEventModal(true);
   };
 
@@ -75,6 +88,29 @@ const Calendar: React.FC = () => {
       });
       
       setShowAddModal(false);
+    }
+  };
+
+  const handleEditEvent = () => {
+    if (selectedEvent && editEvent.title.trim() && editEvent.date && editEvent.time) {
+      updateEvent(selectedEvent.id, {
+        title: editEvent.title,
+        description: editEvent.description,
+        date: editEvent.date,
+        time: editEvent.time
+      });
+      
+      setIsEditing(false);
+      setShowEventModal(false);
+      setSelectedEvent(null);
+    }
+  };
+
+  const handleDeleteEvent = () => {
+    if (selectedEvent && window.confirm('정말로 이 일정을 삭제하시겠습니까?')) {
+      deleteEvent(selectedEvent.id);
+      setShowEventModal(false);
+      setSelectedEvent(null);
     }
   };
 
@@ -332,17 +368,81 @@ const Calendar: React.FC = () => {
                 </div>
               )}
             </div>
-            <div className="flex justify-end gap-2 mt-6">
-              <button
-                onClick={() => setShowEventModal(false)}
-                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                {t('calendar.close')}
-              </button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                {t('calendar.edit')}
-              </button>
-            </div>
+            {isEditing ? (
+              <div className="space-y-4 mt-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">제목</label>
+                  <input
+                    type="text"
+                    value={editEvent.title}
+                    onChange={(e) => setEditEvent({...editEvent, title: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">날짜</label>
+                  <input
+                    type="date"
+                    value={editEvent.date}
+                    onChange={(e) => setEditEvent({...editEvent, date: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">시간</label>
+                  <input
+                    type="time"
+                    value={editEvent.time}
+                    onChange={(e) => setEditEvent({...editEvent, time: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">설명</label>
+                  <textarea
+                    value={editEvent.description}
+                    onChange={(e) => setEditEvent({...editEvent, description: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    rows={3}
+                  ></textarea>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={handleEditEvent}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    저장
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex justify-end gap-2 mt-6">
+                <button
+                  onClick={() => setShowEventModal(false)}
+                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  {t('calendar.close')}
+                </button>
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  {t('calendar.edit')}
+                </button>
+                <button
+                  onClick={handleDeleteEvent}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  삭제
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

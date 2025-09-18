@@ -17,8 +17,15 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, className = '' }) => {
       return { chartData: [], dateRange: [] };
     }
 
-    // Calculate date range
-    const startDates = tasks.map(task => parseISO(task.startDate));
+    // Calculate date range with fallback for missing startDate
+    const startDates = tasks.map(task => {
+      if (task.startDate) {
+        return parseISO(task.startDate);
+      }
+      // Use createdAt as fallback or a date before dueDate
+      const dueDate = parseISO(task.dueDate);
+      return addDays(dueDate, -7); // Start 7 days before due date as default
+    });
     const endDates = tasks.map(task => parseISO(task.dueDate));
     const minDate = new Date(Math.min(...startDates.map(d => d.getTime())));
     const maxDate = new Date(Math.max(...endDates.map(d => d.getTime())));
@@ -33,7 +40,7 @@ const GanttChart: React.FC<GanttChartProps> = ({ tasks, className = '' }) => {
 
     // Calculate task positions and widths
     const chartData = tasks.map(task => {
-      const startDate = parseISO(task.startDate);
+      const startDate = task.startDate ? parseISO(task.startDate) : addDays(parseISO(task.dueDate), -7);
       const endDate = parseISO(task.dueDate);
       const startOffset = differenceInDays(startDate, minDate);
       const duration = differenceInDays(endDate, startDate) + 1;

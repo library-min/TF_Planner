@@ -108,6 +108,12 @@ const Meetings: React.FC = () => {
   const [newComment, setNewComment] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showFileAttachment, setShowFileAttachment] = useState(false);
+  const [newMeeting, setNewMeeting] = useState({
+    title: '',
+    date: '',
+    attendees: '',
+    content: ''
+  });
 
   const filteredMeetings = meetings.filter(meeting =>
     meeting.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -167,6 +173,29 @@ const Meetings: React.FC = () => {
         m.id === selectedMeeting.id ? updatedMeeting : m
       ));
       setSelectedMeeting(updatedMeeting);
+    }
+  };
+
+  const handleAddMeeting = () => {
+    if (newMeeting.title.trim() && newMeeting.date && newMeeting.content.trim()) {
+      const meeting: Meeting = {
+        id: Date.now().toString(),
+        title: newMeeting.title,
+        date: newMeeting.date,
+        content: newMeeting.content,
+        attendees: newMeeting.attendees.split(',').map(name => name.trim()).filter(name => name),
+        comments: [],
+        attachments: []
+      };
+
+      setMeetings([meeting, ...meetings]);
+      setNewMeeting({
+        title: '',
+        date: '',
+        attendees: '',
+        content: ''
+      });
+      setShowAddModal(false);
     }
   };
 
@@ -401,6 +430,8 @@ const Meetings: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('addMeeting.meetingTitle')}</label>
                 <input
                   type="text"
+                  value={newMeeting.title}
+                  onChange={(e) => setNewMeeting({...newMeeting, title: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   placeholder={t('addMeeting.meetingTitlePlaceholder')}
                 />
@@ -409,6 +440,8 @@ const Meetings: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('addMeeting.meetingDate')}</label>
                 <input
                   type="date"
+                  value={newMeeting.date}
+                  onChange={(e) => setNewMeeting({...newMeeting, date: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -416,6 +449,8 @@ const Meetings: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('addMeeting.attendees')}</label>
                 <input
                   type="text"
+                  value={newMeeting.attendees}
+                  onChange={(e) => setNewMeeting({...newMeeting, attendees: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   placeholder={t('addMeeting.attendeesPlaceholder')}
                 />
@@ -423,6 +458,8 @@ const Meetings: React.FC = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('addMeeting.content')}</label>
                 <textarea
+                  value={newMeeting.content}
+                  onChange={(e) => setNewMeeting({...newMeeting, content: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   rows={12}
                   placeholder={t('addMeeting.contentPlaceholder')}
@@ -443,7 +480,11 @@ const Meetings: React.FC = () => {
               >
                 {t('addMeeting.cancel')}
               </button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              <button 
+                onClick={handleAddMeeting}
+                disabled={!newMeeting.title.trim() || !newMeeting.date || !newMeeting.content.trim()}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
                 {t('addMeeting.add')}
               </button>
             </div>
