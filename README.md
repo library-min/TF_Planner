@@ -47,8 +47,6 @@ TF-Planner는 Task Force(프로젝트 팀)의 효율적인 협업을 위해 설�
 
 ## 🎯 데모 계정
 
-프로젝트를 바로 체험해볼 수 있는 데모 계정을 제공합니다:
-
 ### 관리자 계정
 - **이메일**: `admin@demo.com`
 - **비밀번호**: `admin123`
@@ -67,45 +65,6 @@ TF-Planner는 Task Force(프로젝트 팀)의 효율적인 협업을 위해 설�
 - **빌드 도구**: Vite
 - **날짜 처리**: date-fns
 - **언어**: 한국어 지원
-
-## 🚀 시작하기
-
-### 필요 환경
-- Node.js 18.0.0 이상
-- npm 또는 yarn
-
-### 설치 및 실행
-
-1. **프로젝트 복제**
-   ```bash
-   git clone https://github.com/your-username/tf-planner.git
-   cd tf-planner
-   ```
-
-2. **의존성 설치**
-   ```bash
-   npm install
-   ```
-
-3. **개발 서버 실행**
-   ```bash
-   npm run dev
-   ```
-
-4. **브라우저에서 접속**
-   ```
-   http://localhost:5173
-   ```
-
-### 빌드 및 배포
-
-```bash
-# 프로덕션 빌드
-npm run build
-
-# 빌드 결과 미리보기
-npm run preview
-```
 
 ## 📱 주요 화면
 
@@ -168,22 +127,6 @@ src/
 - [ ] 모바일 앱 개발
 - [ ] 다국어 지원
 - [ ] 써드파티 연동 (Slack, Google Calendar 등)
-
-## 🤝 기여하기
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 라이선스
-
-이 프로젝트는 MIT 라이선스 하에 배포됩니다. 자세한 내용은 `LICENSE` 파일을 참조하세요.
-
-## 📞 문의
-
-프로젝트에 대한 질문이나 제안사항이 있으시면 이슈를 생성해주세요.
 
 ---
 
