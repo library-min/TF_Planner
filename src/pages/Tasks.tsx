@@ -1,3 +1,9 @@
+/**
+ * 작업 관리 페이지
+ * 프로젝트의 모든 작업을 관리하고 추적할 수 있는 페이지
+ * 목록 뷰와 간트차트 뷰를 제공하며 작업 생성, 수정, 삭제 기능 포함
+ */
+
 import React, { useState } from 'react';
 import { Plus, Filter, Search, Calendar, User, Flag, BarChart3, Paperclip, Trash2 } from 'lucide-react';
 import Card from '../components/Card';
@@ -9,17 +15,23 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useData, Task } from '../contexts/DataContext';
 
 const Tasks: React.FC = () => {
-  const { t } = useLanguage();
-  const { isDarkMode } = useTheme();
-  const { tasks, users, addTask, updateTask, deleteTask } = useData();
+  // 컨텍스트 훅들로부터 필요한 데이터와 함수들 가져오기
+  const { t } = useLanguage();                              // 다국어 번역 함수
+  const { isDarkMode } = useTheme();                        // 다크모드 상태
+  const { tasks, users, addTask, updateTask, deleteTask } = useData(); // 작업 관련 데이터와 함수들
 
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [currentView, setCurrentView] = useState<'list' | 'gantt'>('list');
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  // 필터 및 검색 상태
+  const [filterStatus, setFilterStatus] = useState<string>('all');     // 작업 상태 필터
+  const [searchTerm, setSearchTerm] = useState('');                    // 검색어
+  
+  // 모달 및 뷰 상태
+  const [showAddModal, setShowAddModal] = useState(false);             // 작업 추가 모달 표시 여부
+  const [currentView, setCurrentView] = useState<'list' | 'gantt'>('list'); // 현재 뷰 모드
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null); // 선택된 작업 ID
+  const [showEditModal, setShowEditModal] = useState(false);           // 작업 수정 모달 표시 여부
+  const [editingTask, setEditingTask] = useState<Task | null>(null);   // 수정 중인 작업
+  
+  // 작업 수정 폼 상태
   const [editTask, setEditTask] = useState({
     title: '',
     description: '',
@@ -29,7 +41,7 @@ const Tasks: React.FC = () => {
     startDate: ''
   });
   
-  // 새 작업 추가 폼 state
+  // 새 작업 추가 폼 상태
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
@@ -39,6 +51,7 @@ const Tasks: React.FC = () => {
     startDate: ''
   });
 
+  // 필터링된 작업 목록 (상태와 검색어에 따라 필터링)
   const filteredTasks = tasks.filter(task => {
     const matchesStatus = filterStatus === 'all' || task.status === filterStatus;
     const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -46,6 +59,11 @@ const Tasks: React.FC = () => {
     return matchesStatus && matchesSearch;
   });
 
+  /**
+   * 작업 상태에 따른 한국어 텍스트 반환
+   * @param status 작업 상태
+   * @returns 한국어 상태 텍스트
+   */
   const getStatusText = (status: string) => {
     switch (status) {
       case 'completed': return '완료';

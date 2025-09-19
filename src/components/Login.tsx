@@ -16,7 +16,7 @@ const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const { login, signup, loginAsDemo } = useAuth();
+  const { login, signup, loginAsDemo, logout } = useAuth();
   const { language, setLanguage } = useLanguage();
   const { isDarkMode } = useTheme();
 
@@ -84,11 +84,28 @@ const Login: React.FC = () => {
           return;
         }
         
+        // 회원가입 수행 (자동 로그인 방지)
         const result = await signup(name, email, password);
         if (result.success) {
-          // 회원가입 성공 시 자동 로그인되므로 별도 처리 불필요
+          // 회원가입 성공 alert 표시
+          alert(`${name}님, 회원가입을 축하합니다! 🎉\n\nTF-Planner에 오신 것을 환영합니다.\n이제 로그인하여 다양한 기능을 이용해보세요!`);
+          
+          // 로그인 모드로 전환
+          setIsSignupMode(false);
+          
+          // 폼 리셋
+          setName('');
+          setEmail('');
+          setPassword('');
+          setConfirmPassword('');
+          setError('');
+          
+          // 자동 로그인을 방지하기 위해 로그아웃 처리
+          setTimeout(() => {
+            logout(); // 자동 로그인된 상태를 해제
+          }, 100);
         } else {
-          setError(result.error || 'Sign up failed');
+          setError(result.error || '회원가입에 실패했습니다.');
         }
       } else {
         // 로그인 처리
