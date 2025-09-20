@@ -399,29 +399,79 @@ const Login: React.FC = () => {
             </h3>
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-3">
+            {/* 관리자 계정 */}
             <button
               onClick={() => loginAsDemo('admin')}
-              className={`w-full flex items-center justify-center gap-3 py-4 px-6 rounded-lg border-2 transition-all ${
+              className={`w-full flex items-center justify-center gap-3 py-3 px-4 rounded-lg border-2 transition-all ${
                 isDarkMode 
                   ? 'bg-green-800 border-green-600 text-green-100 hover:bg-green-700' 
                   : 'bg-green-50 border-green-300 text-green-800 hover:bg-green-100'
               }`}
             >
-              <UserCheck className="w-5 h-5" />
-              <span className="font-medium">{t.adminDemo}</span>
+              <UserCheck className="w-4 h-4" />
+              <span className="font-medium text-sm">👑 김철수 (관리자)</span>
             </button>
             
+            {/* 일반사용자 계정들 */}
             <button
-              onClick={() => loginAsDemo('user')}
-              className={`w-full flex items-center justify-center gap-3 py-4 px-6 rounded-lg border-2 transition-all ${
+              onClick={() => loginAsDemo('user1')}
+              className={`w-full flex items-center justify-center gap-3 py-3 px-4 rounded-lg border-2 transition-all ${
                 isDarkMode 
                   ? 'bg-blue-800 border-blue-600 text-blue-100 hover:bg-blue-700' 
                   : 'bg-blue-50 border-blue-300 text-blue-800 hover:bg-blue-100'
               }`}
             >
-              <Users className="w-5 h-5" />
-              <span className="font-medium">{t.userDemo}</span>
+              <Users className="w-4 h-4" />
+              <span className="font-medium text-sm">👤 박영희 (일반사용자)</span>
+            </button>
+            
+            <button
+              onClick={() => loginAsDemo('user2')}
+              className={`w-full flex items-center justify-center gap-3 py-3 px-4 rounded-lg border-2 transition-all ${
+                isDarkMode 
+                  ? 'bg-purple-800 border-purple-600 text-purple-100 hover:bg-purple-700' 
+                  : 'bg-purple-50 border-purple-300 text-purple-800 hover:bg-purple-100'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span className="font-medium text-sm">👤 이민수 (일반사용자)</span>
+            </button>
+            
+            <button
+              onClick={() => loginAsDemo('user3')}
+              className={`w-full flex items-center justify-center gap-3 py-3 px-4 rounded-lg border-2 transition-all ${
+                isDarkMode 
+                  ? 'bg-pink-800 border-pink-600 text-pink-100 hover:bg-pink-700' 
+                  : 'bg-pink-50 border-pink-300 text-pink-800 hover:bg-pink-100'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span className="font-medium text-sm">👤 최지영 (일반사용자)</span>
+            </button>
+            
+            <button
+              onClick={() => loginAsDemo('user4')}
+              className={`w-full flex items-center justify-center gap-3 py-3 px-4 rounded-lg border-2 transition-all ${
+                isDarkMode 
+                  ? 'bg-indigo-800 border-indigo-600 text-indigo-100 hover:bg-indigo-700' 
+                  : 'bg-indigo-50 border-indigo-300 text-indigo-800 hover:bg-indigo-100'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span className="font-medium text-sm">👤 정수진 (일반사용자)</span>
+            </button>
+            
+            <button
+              onClick={() => loginAsDemo('user5')}
+              className={`w-full flex items-center justify-center gap-3 py-3 px-4 rounded-lg border-2 transition-all ${
+                isDarkMode 
+                  ? 'bg-orange-800 border-orange-600 text-orange-100 hover:bg-orange-700' 
+                  : 'bg-orange-50 border-orange-300 text-orange-800 hover:bg-orange-100'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span className="font-medium text-sm">👤 강호동 (일반사용자)</span>
             </button>
           </div>
           

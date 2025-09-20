@@ -4,7 +4,8 @@
  */
 
 import React, { createContext, useContext, useState, ReactNode, useEffect, useRef } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { Socket } from 'socket.io-client';
+import { socket } from '../utils/socket';
 
 // 메시지 인터페이스
 export interface Message {
@@ -32,12 +33,21 @@ export interface ChatRoom {
   isActive: boolean;                                    // 활성 상태
 }
 
+// 온라인 사용자 인터페이스
+export interface OnlineUser {
+  id: string;
+  name: string;
+  status: 'online' | 'offline';
+  lastSeen: string;
+}
+
 // 채팅 컨텍스트 타입 정의
 interface ChatContextType {
   chatRooms: ChatRoom[];                                    // 채팅방 목록
   activeRoomId: string | null;                              // 현재 활성 채팅방 ID
   unreadCounts: { [roomId: string]: number };               // 읽지 않은 메시지 수
   isConnected: boolean;                                     // Socket.IO 연결 상태
+  onlineUsers: OnlineUser[];                                // 온라인 사용자 목록
   
   // 채팅방 관리 함수들
   createRoom: (type: ChatRoom['type'], participants: string[], name?: string) => string;  // 채팅방 생성
@@ -128,45 +138,44 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   // 각 채팅방별 읽지 않은 메시지 수
   const [unreadCounts, setUnreadCounts] = useState<{ [roomId: string]: number }>({});
+  // 온라인 사용자 목록
+  const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
 
   // Socket.IO 연결 및 이벤트 리스너 설정
   useEffect(() => {
-    // Socket.IO 서버에 연결
-    socketRef.current = io('http://localhost:3001', {
-      transports: ['websocket'],
-      autoConnect: true
-    });
+    // 환경변수 기반 Socket.IO 연결 사용
+    socketRef.current = socket;
 
-    const socket = socketRef.current;
+    const socketInstance = socketRef.current;
 
     // 연결 이벤트
-    socket.on('connect', () => {
-      console.log('✅ Socket.IO 연결됨:', socket.id);
+    socketInstance.on('connect', () => {
+      console.log('✅ Socket.IO 연결됨:', socketInstance.id);
       setIsConnected(true);
       
       // 사용자 정보를 서버에 등록
-      socket.emit('user-join', {
+      socketInstance.emit('user-join', {
         id: currentUserId,
         name: currentUserName
       });
     });
 
     // 연결 해제 이벤트
-    socket.on('disconnect', () => {
+    socketInstance.on('disconnect', () => {
       console.log('❌ Socket.IO 연결 해제됨');
       setIsConnected(false);
     });
 
-    // 메시지 수신 이벤트
-    socket.on('receive-message', (data: { roomId: string; message: Message }) => {
-      console.log('📨 메시지 수신:', data);
+    // 실시간 메시지 수신 이벤트 - 즉시 표시
+    socketInstance.on('message-received', (data: { roomId: string; message: Message; timestamp: string }) => {
+      console.log('📨 [실시간] 메시지 수신:', data);
       
+      // 즉시 화면에 메시지 추가 (지연 없음)
       setChatRooms(prev => {
-        // 기존 방이 있는지 확인
         const existingRoom = prev.find(room => room.id === data.roomId);
         
         if (existingRoom) {
-          // 기존 방에 메시지 추가
+          // 기존 방에 메시지 즉시 추가
           return prev.map(room => 
             room.id === data.roomId
               ? { 
@@ -177,19 +186,21 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
               : room
           );
         } else {
-          // 새 1:1 채팅방 자동 생성 (발신자가 다른 사람인 경우)
+          // 새 1:1 채팅방 자동 생성
           if (data.message.senderId !== currentUserId) {
             const userMap: { [key: string]: string } = {
               '1': '김철수',
               '2': '박영희', 
               '3': '이민수',
-              '4': '최지영'
+              '4': '최지영',
+              '5': '정수진',
+              '6': '강호동'
             };
             
             const senderName = userMap[data.message.senderId] || data.message.senderName;
             const newRoom: ChatRoom = {
               id: data.roomId,
-              name: senderName, // 1:1 채팅은 상대방 이름으로 표시
+              name: senderName,
               type: 'individual',
               participants: [currentUserId, data.message.senderId],
               participantNames: [currentUserName, senderName],
@@ -200,7 +211,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
               isActive: true
             };
             
-            console.log('🆕 새 1:1 채팅방 자동 생성:', newRoom);
+            console.log('🆕 [실시간] 새 채팅방 자동 생성:', newRoom);
             return [...prev, newRoom];
           }
           
@@ -208,7 +219,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
         }
       });
 
-      // 읽지 않은 메시지 카운트 증가 (발신자가 아닌 경우이고, 현재 활성 방이 아닌 경우)
+      // 읽지 않은 메시지 카운트 (발신자가 아니고 현재 활성 방이 아닌 경우)
       if (data.message.senderId !== currentUserId && activeRoomId !== data.roomId) {
         setUnreadCounts(prev => ({
           ...prev,
@@ -217,30 +228,44 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
       }
     });
 
-    // 새 메시지 알림 이벤트
-    socket.on('new-message-notification', (data: { roomId: string; message: Message; from: string }) => {
-      console.log('🔔 새 메시지 알림:', data);
-      
-      // 브라우저 알림 표시 (권한이 있는 경우)
-      if (Notification.permission === 'granted') {
-        new Notification(`${data.from}님의 새 메시지`, {
-          body: data.message.content,
-          icon: '/chat-icon.png'
-        });
-      }
+    // 메시지 전송 확인 이벤트 - 내가 보낸 메시지 즉시 표시
+    socketInstance.on('message-sent', (data: { roomId: string; message: Message; status: string }) => {
+      console.log('📤 [확인] 메시지 전송 완료:', data);
+      // 이미 UI에 표시되었으므로 추가 처리 없음
     });
 
-    // 사용자 수 업데이트 이벤트
-    socket.on('users-count', (count: number) => {
-      console.log(`👥 현재 접속자 수: ${count}명`);
+    // 실시간 알림 이벤트 - 상대방이 메시지를 보냈을 때
+    socketInstance.on('new-message-alert', (data: { roomId: string; message: Message; from: string; timestamp: string }) => {
+      console.log('🔔 [실시간] 새 메시지 알림:', data);
+      
+      // 브라우저 알림 표시
+      if (Notification.permission === 'granted') {
+        new Notification(`💬 ${data.from}님의 새 메시지`, {
+          body: data.message.content,
+          icon: '/Logo(1).svg',
+          badge: '/Logo(1).svg',
+          tag: `chat-${data.roomId}`,
+          requireInteraction: false,
+          silent: false
+        });
+      }
+      
+      // 앱 내 알림 표시 (선택적으로 구현 가능)
+      console.log(`🔔 앱 내 알림: ${data.from}님이 메시지를 보냈습니다.`);
+    });
+
+    // 온라인 사용자 목록 업데이트 이벤트
+    socketInstance.on('users-update', (data: { onlineUsers: OnlineUser[]; totalCount: number }) => {
+      console.log(`👥 온라인 사용자 업데이트:`, data);
+      setOnlineUsers(data.onlineUsers);
     });
 
     // 타이핑 상태 이벤트들
-    socket.on('user-typing', (data: { userId: string; userName: string; roomId: string }) => {
+    socketInstance.on('user-typing', (data: { userId: string; userName: string; roomId: string }) => {
       console.log(`⌨️ ${data.userName}님이 타이핑 중...`);
     });
 
-    socket.on('user-stop-typing', (data: { userId: string; roomId: string }) => {
+    socketInstance.on('user-stop-typing', (data: { userId: string; roomId: string }) => {
       console.log(`⌨️ 타이핑 중지`);
     });
 
@@ -249,11 +274,15 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
       Notification.requestPermission();
     }
 
-    // 컴포넌트 언마운트 시 연결 해제
+    // 컴포넌트 언마운트 시 이벤트 리스너 정리
     return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-      }
+      socketInstance.off('connect');
+      socketInstance.off('disconnect');
+      socketInstance.off('receive-message');
+      socketInstance.off('new-message-notification');
+      socketInstance.off('users-count');
+      socketInstance.off('user-typing');
+      socketInstance.off('user-stop-typing');
     };
   }, [currentUserId, currentUserName]);
 
@@ -284,7 +313,9 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
         '1': '김철수',
         '2': '박영희', 
         '3': '이민수',
-        '4': '최지영'
+        '4': '최지영',
+        '5': '정수진',
+        '6': '강호동'
       };
       return userMap[id] || 'Unknown User';
     });
@@ -361,11 +392,35 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
     type: Message['type'] = 'text',
     fileData?: { url: string; name: string }
   ) => {
+    if (!content.trim()) return; // 빈 메시지 방지
+    
+    const message: Message = {
+      id: Date.now().toString(),
+      content: content.trim(),
+      senderId: currentUserId,
+      senderName: currentUserName,
+      timestamp: new Date().toISOString(),
+      type,
+      fileUrl: fileData?.url,
+      fileName: fileData?.name
+    };
+
+    // 즉시 내 화면에 메시지 표시 (지연 없음)
+    setChatRooms(prev => prev.map(room => 
+      room.id === roomId
+        ? { 
+            ...room, 
+            messages: [...room.messages, message],
+            lastMessageAt: message.timestamp
+          }
+        : room
+    ));
+
     // Socket.IO로 서버에 메시지 전송
     if (socketRef.current && isConnected) {
       const messageData = {
         roomId,
-        content,
+        content: content.trim(),
         senderId: currentUserId,
         senderName: currentUserName,
         type,
@@ -374,7 +429,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
       };
 
       socketRef.current.emit('send-message', messageData);
-      console.log('📤 메시지 전송:', messageData);
+      console.log('📤 [즉시] 메시지 전송:', messageData);
     } else {
       console.error('❌ Socket.IO 연결이 없습니다. 메시지를 전송할 수 없습니다.');
     }
@@ -393,7 +448,9 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
       '1': '김철수',
       '2': '박영희', 
       '3': '이민수',
-      '4': '최지영'
+      '4': '최지영',
+      '5': '정수진',
+      '6': '강호동'
     };
 
     setChatRooms(prev => prev.map(room => 
@@ -412,7 +469,9 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
       '1': '김철수',
       '2': '박영희', 
       '3': '이민수',
-      '4': '최지영'
+      '4': '최지영',
+      '5': '정수진',
+      '6': '강호동'
     };
 
     setChatRooms(prev => prev.map(room => 
@@ -458,6 +517,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
       activeRoomId,
       unreadCounts,
       isConnected,
+      onlineUsers,
       createRoom,
       joinRoom,
       leaveRoom,
