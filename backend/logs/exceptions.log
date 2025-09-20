@@ -1318,3 +1318,267 @@
     }
   ]
 }
+2025-09-20 15:22:31:2231 [[31merror[39m]: [31muncaughtException: listen EADDRINUSE: address already in use :::3001[39m
+[31mError: listen EADDRINUSE: address already in use :::3001[39m
+[31m    at Server.setupListenHandle [as _listen2] (node:net:1940:16)[39m
+[31m    at listenInCluster (node:net:1997:12)[39m
+[31m    at Server.listen (node:net:2102:7)[39m
+[31m    at Object.<anonymous> (C:\Users\Home\Desktop\TF_Planner\backend\src\server.ts:201:8)[39m
+[31m    at Module._compile (node:internal/modules/cjs/loader:1688:14)[39m
+[31m    at Module.m._compile (C:\Users\Home\Desktop\TF_Planner\backend\node_modules\ts-node\src\index.ts:1618:23)[39m
+[31m    at node:internal/modules/cjs/loader:1820:10[39m
+[31m    at Object.require.extensions.<computed> [as .ts] (C:\Users\Home\Desktop\TF_Planner\backend\node_modules\ts-node\src\index.ts:1621:12)[39m
+[31m    at Module.load (node:internal/modules/cjs/loader:1423:32)[39m
+[31m    at Function._load (node:internal/modules/cjs/loader:1246:12)[39m {
+  "error": {
+    "code": "EADDRINUSE",
+    "errno": -4091,
+    "syscall": "listen",
+    "address": "::",
+    "port": 3001
+  },
+  "stack": "Error: listen EADDRINUSE: address already in use :::3001\n    at Server.setupListenHandle [as _listen2] (node:net:1940:16)\n    at listenInCluster (node:net:1997:12)\n    at Server.listen (node:net:2102:7)\n    at Object.<anonymous> (C:\\Users\\Home\\Desktop\\TF_Planner\\backend\\src\\server.ts:201:8)\n    at Module._compile (node:internal/modules/cjs/loader:1688:14)\n    at Module.m._compile (C:\\Users\\Home\\Desktop\\TF_Planner\\backend\\node_modules\\ts-node\\src\\index.ts:1618:23)\n    at node:internal/modules/cjs/loader:1820:10\n    at Object.require.extensions.<computed> [as .ts] (C:\\Users\\Home\\Desktop\\TF_Planner\\backend\\node_modules\\ts-node\\src\\index.ts:1621:12)\n    at Module.load (node:internal/modules/cjs/loader:1423:32)\n    at Function._load (node:internal/modules/cjs/loader:1246:12)",
+  "exception": true,
+  "date": "Sat Sep 20 2025 15:22:31 GMT+0900 (대한민국 표준시)",
+  "process": {
+    "pid": 36928,
+    "uid": null,
+    "gid": null,
+    "cwd": "C:\\Users\\Home\\Desktop\\TF_Planner\\backend",
+    "execPath": "C:\\Program Files\\nodejs\\node.exe",
+    "version": "v22.18.0",
+    "argv": [
+      "C:\\Users\\Home\\Desktop\\TF_Planner\\backend\\node_modules\\ts-node\\dist\\bin.js",
+      "C:\\Users\\Home\\Desktop\\TF_Planner\\backend\\src\\server.ts"
+    ],
+    "memoryUsage": {
+      "rss": 281595904,
+      "heapTotal": 167534592,
+      "heapUsed": 134037560,
+      "external": 8071232,
+      "arrayBuffers": 4906295
+    }
+  },
+  "os": {
+    "loadavg": [
+      0,
+      0,
+      0
+    ],
+    "uptime": 490936.765
+  },
+  "trace": [
+    {
+      "column": 16,
+      "file": "node:net",
+      "function": "Server.setupListenHandle [as _listen2]",
+      "line": 1940,
+      "method": "setupListenHandle [as _listen2]",
+      "native": false
+    },
+    {
+      "column": 12,
+      "file": "node:net",
+      "function": "listenInCluster",
+      "line": 1997,
+      "method": null,
+      "native": false
+    },
+    {
+      "column": 7,
+      "file": "node:net",
+      "function": "Server.listen",
+      "line": 2102,
+      "method": "listen",
+      "native": false
+    },
+    {
+      "column": 8,
+      "file": "C:\\Users\\Home\\Desktop\\TF_Planner\\backend\\src\\server.ts",
+      "function": null,
+      "line": 201,
+      "method": null,
+      "native": false
+    },
+    {
+      "column": 14,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module._compile",
+      "line": 1688,
+      "method": "_compile",
+      "native": false
+    },
+    {
+      "column": 23,
+      "file": "C:\\Users\\Home\\Desktop\\TF_Planner\\backend\\node_modules\\ts-node\\src\\index.ts",
+      "function": "Module.m._compile",
+      "line": 1618,
+      "method": "_compile",
+      "native": false
+    },
+    {
+      "column": 10,
+      "file": "node:internal/modules/cjs/loader",
+      "function": null,
+      "line": 1820,
+      "method": null,
+      "native": false
+    },
+    {
+      "column": 12,
+      "file": "C:\\Users\\Home\\Desktop\\TF_Planner\\backend\\node_modules\\ts-node\\src\\index.ts",
+      "function": "Object.require.extensions.<computed> [as .ts]",
+      "line": 1621,
+      "method": "ts]",
+      "native": false
+    },
+    {
+      "column": 32,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module.load",
+      "line": 1423,
+      "method": "load",
+      "native": false
+    },
+    {
+      "column": 12,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Function._load",
+      "line": 1246,
+      "method": "_load",
+      "native": false
+    }
+  ]
+}
+2025-09-20 15:24:18:2418 [[31merror[39m]: [31muncaughtException: listen EADDRINUSE: address already in use :::3001[39m
+[31mError: listen EADDRINUSE: address already in use :::3001[39m
+[31m    at Server.setupListenHandle [as _listen2] (node:net:1940:16)[39m
+[31m    at listenInCluster (node:net:1997:12)[39m
+[31m    at Server.listen (node:net:2102:7)[39m
+[31m    at Object.<anonymous> (C:\Users\Home\Desktop\TF_Planner\backend\src\server.ts:298:8)[39m
+[31m    at Module._compile (node:internal/modules/cjs/loader:1688:14)[39m
+[31m    at Module.m._compile (C:\Users\Home\Desktop\TF_Planner\backend\node_modules\ts-node\src\index.ts:1618:23)[39m
+[31m    at node:internal/modules/cjs/loader:1820:10[39m
+[31m    at Object.require.extensions.<computed> [as .ts] (C:\Users\Home\Desktop\TF_Planner\backend\node_modules\ts-node\src\index.ts:1621:12)[39m
+[31m    at Module.load (node:internal/modules/cjs/loader:1423:32)[39m
+[31m    at Function._load (node:internal/modules/cjs/loader:1246:12)[39m {
+  "error": {
+    "code": "EADDRINUSE",
+    "errno": -4091,
+    "syscall": "listen",
+    "address": "::",
+    "port": 3001
+  },
+  "stack": "Error: listen EADDRINUSE: address already in use :::3001\n    at Server.setupListenHandle [as _listen2] (node:net:1940:16)\n    at listenInCluster (node:net:1997:12)\n    at Server.listen (node:net:2102:7)\n    at Object.<anonymous> (C:\\Users\\Home\\Desktop\\TF_Planner\\backend\\src\\server.ts:298:8)\n    at Module._compile (node:internal/modules/cjs/loader:1688:14)\n    at Module.m._compile (C:\\Users\\Home\\Desktop\\TF_Planner\\backend\\node_modules\\ts-node\\src\\index.ts:1618:23)\n    at node:internal/modules/cjs/loader:1820:10\n    at Object.require.extensions.<computed> [as .ts] (C:\\Users\\Home\\Desktop\\TF_Planner\\backend\\node_modules\\ts-node\\src\\index.ts:1621:12)\n    at Module.load (node:internal/modules/cjs/loader:1423:32)\n    at Function._load (node:internal/modules/cjs/loader:1246:12)",
+  "exception": true,
+  "date": "Sat Sep 20 2025 15:24:18 GMT+0900 (대한민국 표준시)",
+  "process": {
+    "pid": 34688,
+    "uid": null,
+    "gid": null,
+    "cwd": "C:\\Users\\Home\\Desktop\\TF_Planner\\backend",
+    "execPath": "C:\\Program Files\\nodejs\\node.exe",
+    "version": "v22.18.0",
+    "argv": [
+      "C:\\Users\\Home\\Desktop\\TF_Planner\\backend\\node_modules\\ts-node\\dist\\bin.js",
+      "C:\\Users\\Home\\Desktop\\TF_Planner\\backend\\src\\server.ts"
+    ],
+    "memoryUsage": {
+      "rss": 279478272,
+      "heapTotal": 168321024,
+      "heapUsed": 137607200,
+      "external": 8069522,
+      "arrayBuffers": 4904585
+    }
+  },
+  "os": {
+    "loadavg": [
+      0,
+      0,
+      0
+    ],
+    "uptime": 491043.546
+  },
+  "trace": [
+    {
+      "column": 16,
+      "file": "node:net",
+      "function": "Server.setupListenHandle [as _listen2]",
+      "line": 1940,
+      "method": "setupListenHandle [as _listen2]",
+      "native": false
+    },
+    {
+      "column": 12,
+      "file": "node:net",
+      "function": "listenInCluster",
+      "line": 1997,
+      "method": null,
+      "native": false
+    },
+    {
+      "column": 7,
+      "file": "node:net",
+      "function": "Server.listen",
+      "line": 2102,
+      "method": "listen",
+      "native": false
+    },
+    {
+      "column": 8,
+      "file": "C:\\Users\\Home\\Desktop\\TF_Planner\\backend\\src\\server.ts",
+      "function": null,
+      "line": 298,
+      "method": null,
+      "native": false
+    },
+    {
+      "column": 14,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module._compile",
+      "line": 1688,
+      "method": "_compile",
+      "native": false
+    },
+    {
+      "column": 23,
+      "file": "C:\\Users\\Home\\Desktop\\TF_Planner\\backend\\node_modules\\ts-node\\src\\index.ts",
+      "function": "Module.m._compile",
+      "line": 1618,
+      "method": "_compile",
+      "native": false
+    },
+    {
+      "column": 10,
+      "file": "node:internal/modules/cjs/loader",
+      "function": null,
+      "line": 1820,
+      "method": null,
+      "native": false
+    },
+    {
+      "column": 12,
+      "file": "C:\\Users\\Home\\Desktop\\TF_Planner\\backend\\node_modules\\ts-node\\src\\index.ts",
+      "function": "Object.require.extensions.<computed> [as .ts]",
+      "line": 1621,
+      "method": "ts]",
+      "native": false
+    },
+    {
+      "column": 32,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Module.load",
+      "line": 1423,
+      "method": "load",
+      "native": false
+    },
+    {
+      "column": 12,
+      "file": "node:internal/modules/cjs/loader",
+      "function": "Function._load",
+      "line": 1246,
+      "method": "_load",
+      "native": false
+    }
+  ]
+}

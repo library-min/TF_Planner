@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Phone, Video, Settings, Plus, Smile, Paperclip, X, LogOut } from 'lucide-react';
+import { Send, Phone, Video, Settings, Plus, Smile, Paperclip, X, LogOut, Download } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useChat, Message } from '../contexts/ChatContext';
 import { useData } from '../contexts/DataContext';
@@ -21,7 +21,10 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, onClose }) => {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showParticipants, setShowParticipants] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -100,6 +103,71 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, onClose }) => {
     setShowInviteModal(false);
   };
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // 업로드 상태 초기화
+    setIsUploading(true);
+    setUploadError(null);
+
+    // 파일 크기 체크 (100MB)
+    const maxSize = 100 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setUploadError('파일 크기가 너무 큽니다. (최대 100MB)');
+      setIsUploading(false);
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch('http://localhost:3010/api/chat/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        // 파일 메시지 전송
+        sendMessage(room.id, file.name, 'file', result.fileUrl, file.name);
+        console.log('파일 업로드 및 전송 완료:', result);
+      } else {
+        setUploadError(result.message || '파일 업로드에 실패했습니다.');
+        console.error('파일 업로드 실패:', result);
+      }
+    } catch (error) {
+      setUploadError('네트워크 오류가 발생했습니다.');
+      console.error('파일 업로드 중 오류:', error);
+    } finally {
+      setIsUploading(false);
+      // 파일 입력 초기화
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleFileDownload = async (fileUrl: string, fileName: string) => {
+    try {
+      const response = await fetch(`http://localhost:3010${fileUrl}`);
+      const blob = await response.blob();
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('파일 다운로드 중 오류:', error);
+    }
+  };
+
 
 
   const canManageRoom = isAdmin || room.createdBy === user?.id;
@@ -140,22 +208,26 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, onClose }) => {
         
         {/* Header Actions */}
         <div className="flex items-center space-x-1">
-          <button className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
+          <button 
+            disabled={true}
+            title="기능 준비 중입니다"
+            className="p-1.5 text-gray-400 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
             <Phone className="w-4 h-4" />
           </button>
-          <button className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
+          <button 
+            disabled={true}
+            title="기능 준비 중입니다"
+            className="p-1.5 text-gray-400 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
             <Video className="w-4 h-4" />
           </button>
           <button 
             onClick={() => setShowParticipants(!showParticipants)}
-            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
-          >
+            className={`p-1.5 text-gray-400 rounded transition-colors ${isDarkMode ? 'hover:text-gray-200 hover:bg-gray-700' : 'hover:text-gray-600 hover:bg-gray-100'}`}>
             <Settings className="w-4 h-4" />
           </button>
           <button 
             onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
-          >
+            className={`p-1.5 text-gray-400 rounded transition-colors ${isDarkMode ? 'hover:text-red-400 hover:bg-red-900/50' : 'hover:text-red-500 hover:bg-red-50'}`}>
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -256,14 +328,23 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, onClose }) => {
                             : 'bg-gray-100 text-gray-900 rounded-bl-md'
                       }`}
                     >
-                      <p className="text-sm">{message.content}</p>
-                      {message.type === 'file' && message.fileName && (
-                        <div className="mt-2 p-2 bg-black/10 rounded-lg">
-                          <div className="flex items-center space-x-2">
-                            <Paperclip className="w-4 h-4" />
-                            <span className="text-xs">{message.fileName}</span>
+                      {message.type === 'file' ? (
+                        <div className="mt-2 p-3 bg-black/10 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <Paperclip className="w-4 h-4" />
+                              <span className="text-sm font-medium">{message.fileName}</span>
+                            </div>
+                            <button
+                              onClick={() => handleFileDownload(message.fileUrl || '', message.fileName || '')}
+                              className="p-1 hover:bg-black/10 rounded transition-colors"
+                            >
+                              <Download className="w-4 h-4" />
+                            </button>
                           </div>
                         </div>
+                      ) : (
+                        <p className="text-sm">{message.content}</p>
                       )}
                     </div>
                     
@@ -280,6 +361,33 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, onClose }) => {
         )}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Upload Status */}
+      {(isUploading || uploadError) && (
+        <div className={`px-4 py-2 border-t ${
+          isDarkMode ? 'border-gray-600 bg-gray-800' : 'border-gray-200 bg-gray-50'
+        }`}>
+          {isUploading && (
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                파일 업로드 중...
+              </span>
+            </div>
+          )}
+          {uploadError && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-red-500">{uploadError}</span>
+              <button
+                onClick={() => setUploadError(null)}
+                className="text-red-500 hover:text-red-700"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Message Input */}
       {room.type !== 'admin_broadcast' || isAdmin ? (
@@ -313,8 +421,23 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, onClose }) => {
               </button>
             </div>
             
-            <button className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
-              <Paperclip className="w-4 h-4" />
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              className="hidden"
+              accept="*/*"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className={`p-1.5 rounded transition-colors ${
+                isUploading
+                  ? 'text-gray-300 cursor-not-allowed'
+                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <Paperclip className={`w-4 h-4 ${isUploading ? 'animate-pulse' : ''}`} />
             </button>
             
             <button
@@ -346,13 +469,12 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, onClose }) => {
       {/* Invite Modal */}
       {showInviteModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+          <div className={`rounded-2xl p-6 w-full max-w-md ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">사용자 초대</h3>
+              <h3 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>사용자 초대</h3>
               <button
                 onClick={() => setShowInviteModal(false)}
-                className="p-1 text-gray-400 hover:text-gray-600 rounded"
-              >
+                className={`p-1 rounded ${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`}>
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -362,22 +484,21 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, onClose }) => {
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl">🤷‍♂️</span>
                 </div>
-                <p className="text-gray-500">초대할 수 있는 사용자가 없습니다.</p>
+                <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>초대할 수 있는 사용자가 없습니다.</p>
               </div>
             ) : (
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {availableUsers.map((availableUser) => (
                   <div
                     key={availableUser.id}
-                    className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg"
-                  >
+                    className={`flex items-center justify-between p-3 rounded-lg ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}>
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                         <span className="text-white text-sm">{availableUser.name[0]}</span>
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{availableUser.name}</p>
-                        <p className="text-sm text-gray-500">{availableUser.role}</p>
+                        <p className={`font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>{availableUser.name}</p>
+                        <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{availableUser.role}</p>
                       </div>
                     </div>
                     <button

@@ -11,6 +11,9 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const http_1 = require("http");
 const socket_io_1 = require("socket.io");
+const multer_1 = __importDefault(require("multer"));
+const path_1 = __importDefault(require("path"));
+const fs_1 = __importDefault(require("fs"));
 const app = (0, express_1.default)();
 const server = (0, http_1.createServer)(app);
 const PORT = 3001;
@@ -27,7 +30,37 @@ app.use((0, cors_1.default)({
     origin: ["http://localhost:5173", "http://localhost:5174"],
     credentials: true
 }));
-app.use(express_1.default.json());
+app.use(express_1.default.json({ limit: '100mb' }));
+app.use(express_1.default.urlencoded({ limit: '100mb', extended: true }));
+// 업로드 폴더 생성
+const uploadDir = path_1.default.join(__dirname, '../uploads');
+if (!fs_1.default.existsSync(uploadDir)) {
+    fs_1.default.mkdirSync(uploadDir, { recursive: true });
+}
+// 정적 파일 제공 (업로드된 파일)
+app.use('/uploads', express_1.default.static(uploadDir));
+// Multer 설정 (파일 업로드)
+const storage = multer_1.default.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        // 파일명에 타임스탬프 추가하여 중복 방지
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + '-' + file.originalname);
+    }
+});
+const upload = (0, multer_1.default)({
+    storage,
+    limits: {
+        fileSize: 100 * 1024 * 1024, // 100MB 제한으로 증가
+        files: 1 // 한 번에 하나의 파일만
+    },
+    fileFilter: (req, file, cb) => {
+        // 모든 파일 타입 허용
+        cb(null, true);
+    }
+});
 // 채팅 데이터 임시 저장소 (실제로는 데이터베이스 사용)
 const chatRooms = {};
 const users = {};
@@ -165,6 +198,60 @@ app.get('/api/chat/rooms/:roomId/messages', (req, res) => {
         messages
     });
 });
+// 파일 업로드 API
+app.post('/api/chat/upload', (req, res) => {
+    upload.single('file')(req, res, (err) => {
+        if (err) {
+            console.error('파일 업로드 중 multer 오류:', err);
+            if (err.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({
+                    success: false,
+                    message: '파일 크기가 너무 큽니다. (최대 100MB)'
+                });
+            }
+            if (err.code === 'LIMIT_FILE_COUNT') {
+                return res.status(400).json({
+                    success: false,
+                    message: '한 번에 하나의 파일만 업로드할 수 있습니다.'
+                });
+            }
+            return res.status(500).json({
+                success: false,
+                message: '파일 업로드 중 오류가 발생했습니다: ' + err.message
+            });
+        }
+        try {
+            if (!req.file) {
+                return res.status(400).json({
+                    success: false,
+                    message: '파일이 선택되지 않았습니다.'
+                });
+            }
+            const fileUrl = `/uploads/${req.file.filename}`;
+            console.log('파일 업로드 성공:', {
+                originalName: req.file.originalname,
+                filename: req.file.filename,
+                size: req.file.size,
+                mimetype: req.file.mimetype
+            });
+            res.json({
+                success: true,
+                message: '파일 업로드 성공',
+                fileUrl,
+                fileName: req.file.originalname,
+                fileSize: req.file.size,
+                mimeType: req.file.mimetype
+            });
+        }
+        catch (error) {
+            console.error('파일 업로드 처리 중 오류:', error);
+            res.status(500).json({
+                success: false,
+                message: '파일 업로드 처리 중 오류가 발생했습니다.'
+            });
+        }
+    });
+});
 // Socket.IO 연결 처리
 io.on('connection', (socket) => {
     console.log(`👤 사용자 연결됨: ${socket.id}`);
@@ -233,7 +320,9 @@ io.on('connection', (socket) => {
             senderId: messageData.senderId,
             senderName: messageData.senderName,
             timestamp: new Date().toISOString(),
-            type: 'text'
+            type: messageData.type || 'text', // 클라이언트가 보낸 타입 사용
+            fileUrl: messageData.fileUrl, // 파일 URL 추가
+            fileName: messageData.fileName // 파일 이름 추가
         };
         // 메시지 저장
         if (chatRooms[messageData.roomId]) {

@@ -11,6 +11,9 @@ import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import rateLimit from 'express-rate-limit';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 
 // 라우트 임포트
 import authRoutes from './routes/authRoutes';
@@ -54,8 +57,41 @@ app.use(cors({
   credentials: true
 }));
 app.use(limiter); // 요청 제한
-app.use(express.json({ limit: '10mb' })); // JSON 파싱 (파일 업로드 고려)
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '100mb' })); // JSON 파싱 (파일 업로드 고려)
+app.use(express.urlencoded({ limit: '100mb', extended: true }));
+
+// 업로드 폴더 생성
+const uploadDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// 정적 파일 제공 (업로드된 파일)
+app.use('/uploads', express.static(uploadDir));
+
+// Multer 설정 (파일 업로드)
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    // 파일명에 타임스탬프 추가하여 중복 방지
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + '-' + file.originalname);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 100 * 1024 * 1024, // 100MB 제한으로 증가
+    files: 1 // 한 번에 하나의 파일만
+  },
+  fileFilter: (req, file, cb) => {
+    // 모든 파일 타입 허용
+    cb(null, true);
+  }
+});
 
 // 로깅 미들웨어
 app.use((req, res, next) => {
@@ -67,6 +103,67 @@ app.use((req, res, next) => {
 app.use('/api/auth', authRoutes); // 인증 관련 API
 app.use('/api/chat', chatRoutes); // 채팅 관련 API
 app.use('/api/tasks', taskRoutes); // 작업 관리 API
+
+// 파일 업로드 API
+app.post('/api/chat/upload', (req, res) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      logger.error('파일 업로드 중 multer 오류:', err);
+
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({
+          success: false,
+          message: '파일 크기가 너무 큽니다. (최대 100MB)'
+        });
+      }
+
+      if (err.code === 'LIMIT_FILE_COUNT') {
+        return res.status(400).json({
+          success: false,
+          message: '한 번에 하나의 파일만 업로드할 수 있습니다.'
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        message: '파일 업로드 중 오류가 발생했습니다: ' + err.message
+      });
+    }
+
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: '파일이 선택되지 않았습니다.'
+        });
+      }
+
+      const fileUrl = `/uploads/${req.file.filename}`;
+
+      logger.info('파일 업로드 성공:', {
+        originalName: req.file.originalname,
+        filename: req.file.filename,
+        size: req.file.size,
+        mimetype: req.file.mimetype
+      });
+
+      res.json({
+        success: true,
+        message: '파일 업로드 성공',
+        fileUrl,
+        fileName: req.file.originalname,
+        fileSize: req.file.size,
+        mimeType: req.file.mimetype
+      });
+    } catch (error) {
+      logger.error('파일 업로드 처리 중 오류:', error);
+      res.status(500).json({
+        success: false,
+        message: '파일 업로드 처리 중 오류가 발생했습니다.'
+      });
+    }
+  });
+});
 
 // 헬스 체크 엔드포인트
 app.get('/api/health', (req, res) => {

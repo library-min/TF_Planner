@@ -32,6 +32,12 @@ export interface ChatRoom {
   isActive: boolean;                                    // 활성 상태
 }
 
+// 온라인 사용자 인터페이스
+export interface OnlineUser {
+  id: string;      // 사용자 ID
+  name: string;    // 사용자 이름
+}
+
 // 채팅 컨텍스트 타입 정의
 interface ChatContextType {
   chatRooms: ChatRoom[];                                    // 채팅방 목록
@@ -46,7 +52,7 @@ interface ChatContextType {
   setActiveRoom: (roomId: string | null) => void;           // 활성 채팅방 설정
   
   // 메시지 관리 함수들
-  sendMessage: (roomId: string, content: string, type?: Message['type'], fileData?: { url: string; name: string }) => void;  // 메시지 전송
+  sendMessage: (roomId: string, content: string, type?: Message['type'], fileUrl?: string, fileName?: string) => void;  // 메시지 전송
   markAsRead: (roomId: string) => void;                     // 메시지 읽음 처리
   
   // 사용자 관리 함수들
@@ -368,10 +374,11 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   };
 
   const sendMessage = (
-    roomId: string, 
-    content: string, 
+    roomId: string,
+    content: string,
     type: Message['type'] = 'text',
-    fileData?: { url: string; name: string }
+    fileUrl?: string,
+    fileName?: string
   ) => {
     // Socket.IO로 서버에 메시지 전송
     if (socketRef.current && isConnected) {
@@ -383,8 +390,8 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
         senderId: currentUserId,
         senderName: currentUserName,
         type,
-        fileUrl: fileData?.url,
-        fileName: fileData?.name,
+        fileUrl,
+        fileName,
         participants: room?.participants || [] // 서버에 참여자 목록 전달
       };
 

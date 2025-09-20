@@ -262,21 +262,21 @@ const ChatList: React.FC<ChatListProps> = ({ onRoomSelect, selectedRoomId }) => 
       {/* New Chat Modal */}
       {showNewChatModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-transparent backdrop-blur-xl rounded-2xl p-8 w-full max-w-md border border-white/20">
-            <h3 className="text-xl font-bold text-gray-900 mb-6">새 채팅 시작</h3>
+          <div className={`${isDarkMode ? 'bg-gray-900/80 border-gray-700' : 'bg-white/90 border-transparent'} backdrop-blur-xl rounded-2xl p-8 w-full max-w-md border`}>
+            <h3 className={`text-xl font-bold mb-6 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>새 채팅 시작</h3>
             <div className="space-y-3 max-h-60 overflow-y-auto">
               {availableUsers.map((availableUser) => (
                 <div
                   key={availableUser.id}
                   onClick={() => startDirectMessage(availableUser.id)}
-                  className="flex items-center space-x-4 p-4 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 rounded-xl cursor-pointer transition-all duration-200 border border-transparent hover:border-blue-200/50 hover:shadow-md"
+                  className={`flex items-center space-x-4 p-4 rounded-xl cursor-pointer transition-all duration-200 border border-transparent ${isDarkMode ? 'hover:bg-gray-700 hover:border-blue-800/50' : 'hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:border-blue-200/50'} hover:shadow-md`}
                 >
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold shadow-md">
                     {availableUser.name[0]}
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900">{availableUser.name}</p>
-                    <p className="text-sm text-gray-500">{availableUser.role}</p>
+                    <p className={`font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>{availableUser.name}</p>
+                    <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{availableUser.role}</p>
                   </div>
                 </div>
               ))}
@@ -284,7 +284,7 @@ const ChatList: React.FC<ChatListProps> = ({ onRoomSelect, selectedRoomId }) => 
             <div className="flex justify-end mt-6">
               <button
                 onClick={() => setShowNewChatModal(false)}
-                className="px-6 py-2.5 text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium"
+                className={`px-6 py-2.5 rounded-xl transition-all duration-200 font-medium ${isDarkMode ? 'text-gray-300 border border-gray-600 hover:bg-gray-700' : 'text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
               >
                 취소
               </button>
@@ -296,11 +296,11 @@ const ChatList: React.FC<ChatListProps> = ({ onRoomSelect, selectedRoomId }) => 
       {/* Group Chat Modal */}
       {showGroupChatModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-transparent backdrop-blur-xl rounded-2xl p-8 w-full max-w-md border border-white/20">
-            <h3 className="text-xl font-bold text-gray-900 mb-6">그룹 채팅 만들기</h3>
+          <div className={`${isDarkMode ? 'bg-gray-900/80 border-gray-700' : 'bg-white/90 border-transparent'} backdrop-blur-xl rounded-2xl p-8 w-full max-w-md border`}>
+            <h3 className={`text-xl font-bold mb-6 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>그룹 채팅 만들기</h3>
             
             <div className="mb-6">
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
+              <label className={`block text-sm font-semibold mb-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 그룹 이름 (선택사항)
               </label>
               <input
@@ -308,37 +308,37 @@ const ChatList: React.FC<ChatListProps> = ({ onRoomSelect, selectedRoomId }) => 
                 value={groupName}
                 onChange={(e) => setGroupName(e.target.value)}
                 placeholder="그룹 이름을 입력하세요"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 shadow-sm"
+                className={`w-full px-4 py-3 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300'} border`}
               />
             </div>
 
             <div className="mb-6">
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
+              <label className={`block text-sm font-semibold mb-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 참가자 선택 ({selectedUsers.length}명)
               </label>
-              <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-xl p-3">
+              <div className={`space-y-2 max-h-48 overflow-y-auto rounded-xl p-3 border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                 {availableUsers.map((availableUser) => (
                   <div
                     key={availableUser.id}
-                    className={`flex items-center space-x-3 p-3 rounded-xl cursor-pointer transition-all duration-200 ${
+                    className={`flex items-center space-x-3 p-3 rounded-xl cursor-pointer transition-all duration-200 ${ 
                       selectedUsers.includes(availableUser.id) 
-                        ? 'bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 shadow-sm' 
-                        : 'hover:bg-gray-50/80'
+                        ? isDarkMode ? 'bg-blue-900/50 border border-blue-700' : 'bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 shadow-sm' 
+                        : isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50/80'
                     }`}
                     onClick={() => toggleUserSelection(availableUser.id)}
                   >
                     <input
                       type="checkbox"
+                      readOnly
                       checked={selectedUsers.includes(availableUser.id)}
-                      onChange={() => toggleUserSelection(availableUser.id)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
+                      className={`rounded text-blue-600 focus:ring-blue-500 w-4 h-4 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'border-gray-300'}`}
                     />
                     <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-semibold shadow-md">
                       {availableUser.name[0]}
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900 text-sm">{availableUser.name}</p>
-                      <p className="text-xs text-gray-500">{availableUser.role}</p>
+                      <p className={`font-semibold text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>{availableUser.name}</p>
+                      <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{availableUser.role}</p>
                     </div>
                   </div>
                 ))}
@@ -352,7 +352,7 @@ const ChatList: React.FC<ChatListProps> = ({ onRoomSelect, selectedRoomId }) => 
                   setSelectedUsers([]);
                   setGroupName('');
                 }}
-                className="px-6 py-2.5 text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium"
+                className={`px-6 py-2.5 rounded-xl transition-all duration-200 font-medium ${isDarkMode ? 'text-gray-300 border border-gray-600 hover:bg-gray-700' : 'text-gray-600 border border-gray-300 hover:bg-gray-50'}`}
               >
                 취소
               </button>
