@@ -410,7 +410,7 @@ const Login: React.FC = () => {
               }`}
             >
               <UserCheck className="w-4 h-4" />
-              <span className="font-medium text-sm">👑 김철수 (관리자)</span>
+              <span className="font-medium text-sm">데모 김철수 (관리자)</span>
             </button>
             
             {/* 일반사용자 계정들 */}
@@ -423,7 +423,7 @@ const Login: React.FC = () => {
               }`}
             >
               <Users className="w-4 h-4" />
-              <span className="font-medium text-sm">👤 박영희 (일반사용자)</span>
+              <span className="font-medium text-sm">데모 박영희 (일반사용자)</span>
             </button>
             
             <button
@@ -435,7 +435,7 @@ const Login: React.FC = () => {
               }`}
             >
               <Users className="w-4 h-4" />
-              <span className="font-medium text-sm">👤 이민수 (일반사용자)</span>
+              <span className="font-medium text-sm">데모 이민수 (일반사용자)</span>
             </button>
             
             <button
@@ -447,7 +447,7 @@ const Login: React.FC = () => {
               }`}
             >
               <Users className="w-4 h-4" />
-              <span className="font-medium text-sm">👤 최지영 (일반사용자)</span>
+              <span className="font-medium text-sm">데모 최지영 (일반사용자)</span>
             </button>
             
             <button
@@ -459,7 +459,7 @@ const Login: React.FC = () => {
               }`}
             >
               <Users className="w-4 h-4" />
-              <span className="font-medium text-sm">👤 정수진 (일반사용자)</span>
+              <span className="font-medium text-sm">데모 정수진 (일반사용자)</span>
             </button>
             
             <button
@@ -471,7 +471,7 @@ const Login: React.FC = () => {
               }`}
             >
               <Users className="w-4 h-4" />
-              <span className="font-medium text-sm">👤 강호동 (일반사용자)</span>
+              <span className="font-medium text-sm">데모 강호동 (일반사용자)</span>
             </button>
           </div>
           

@@ -10,16 +10,16 @@ const Chat: React.FC = () => {
   const { chatRooms, createAdminBroadcast } = useChat();
   const { user, isAdmin } = useAuth();
   const { isDarkMode } = useTheme();
-  const [selectedRoom, setSelectedRoom] = useState<ChatRoomType | null>(null);
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [showAdminBroadcast, setShowAdminBroadcast] = useState(false);
   const [broadcastMessage, setBroadcastMessage] = useState('');
 
   const handleRoomSelect = (room: ChatRoomType) => {
-    setSelectedRoom(room);
+    setSelectedRoomId(room.id);
   };
 
   const handleCloseRoom = () => {
-    setSelectedRoom(null);
+    setSelectedRoomId(null);
   };
 
   const handleSendBroadcast = () => {
@@ -31,7 +31,7 @@ const Chat: React.FC = () => {
       // 공지방 자동 선택
       const broadcastRoom = chatRooms.find(room => room.type === 'admin_broadcast');
       if (broadcastRoom) {
-        setSelectedRoom(broadcastRoom);
+        setSelectedRoomId(broadcastRoom.id);
       }
     }
   };
@@ -69,15 +69,15 @@ const Chat: React.FC = () => {
         <div className="w-72">
           <ChatList 
             onRoomSelect={handleRoomSelect}
-            selectedRoomId={selectedRoom?.id || null}
+            selectedRoomId={selectedRoomId}
           />
         </div>
 
         {/* Chat Room or Welcome Screen */}
         <div className="flex-1 flex flex-col bg-transparent">
-          {selectedRoom ? (
+          {selectedRoomId ? (
             <ChatRoom 
-              room={selectedRoom} 
+              roomId={selectedRoomId} 
               onClose={handleCloseRoom}
             />
           ) : (

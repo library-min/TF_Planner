@@ -25,8 +25,8 @@ interface AuthContextType {
   isAdmin: boolean;                                     // 관리자 권한 여부
   login: (email: string, password: string) => Promise<boolean>; // 로그인 함수
   signup: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>; // 회원가입 함수
-  loginAsDemo: (userType: 'admin' | 'user' | 'user1' | 'user2' | 'user3' | 'user4' | 'user5') => void;    // 데모 로그인 함수
-  logout: () => void;                                   // 로그아웃 함수
+  loginAsDemo: (userType: 'admin' | 'user' | 'user1' | 'user2' | 'user3' | 'user4' | 'user5') => void;    // 곕え 濡洹몄 ⑥
+  logout: () => void;                                   // 濡洹몄 ⑥
 }
 
 // 인증 컨텍스트 생성
@@ -105,10 +105,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   /**
    * 데모 로그인 함수
-   * @param userType 사용자 타입 (admin, user1~user5)
+   * @param userType 사용자 타입 (admin 또는 user)
    */
   const loginAsDemo = (userType: 'admin' | 'user' | 'user1' | 'user2' | 'user3' | 'user4' | 'user5') => {
-    // 데모 사용자 데이터 매핑
+    // 데모 사용자 데이터 맵
     const demoUsers: { [key: string]: User } = {
       admin: {
         id: '1',
@@ -116,7 +116,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email: 'admin@tf-planner.com',
         role: '관리자'
       },
-      user: {  // 하위 호환성을 위해 유지
+      user: {  // 하위 호환성을 위한 임시
         id: '2',
         name: '박영희',
         email: 'user1@tf-planner.com',

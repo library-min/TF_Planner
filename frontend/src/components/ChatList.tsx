@@ -11,7 +11,7 @@ interface ChatListProps {
 }
 
 const ChatList: React.FC<ChatListProps> = ({ onRoomSelect, selectedRoomId }) => {
-  const { chatRooms, unreadCounts, createRoom } = useChat();
+  const { chatRooms, unreadCounts, createRoom, isConnected } = useChat();
   const { users } = useData();
   const { user } = useAuth();
   const { isDarkMode } = useTheme();
@@ -130,14 +130,20 @@ const ChatList: React.FC<ChatListProps> = ({ onRoomSelect, selectedRoomId }) => 
           <div className="flex space-x-1">
             <button
               onClick={() => setShowNewChatModal(true)}
-              className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              disabled={!isConnected}
+              className={`p-2 text-gray-500 rounded-lg transition-colors ${
+                isConnected ? 'hover:text-blue-600 hover:bg-blue-50' : 'opacity-50 cursor-not-allowed'
+              }`}
               title="새 채팅"
             >
               <Plus className="w-4 h-4" />
             </button>
             <button
               onClick={() => setShowGroupChatModal(true)}
-              className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+              disabled={!isConnected}
+              className={`p-2 text-gray-500 rounded-lg transition-colors ${
+                isConnected ? 'hover:text-purple-600 hover:bg-purple-50' : 'opacity-50 cursor-not-allowed'
+              }`}
               title="그룹 채팅 만들기"
             >
               <Users className="w-4 h-4" />
@@ -352,7 +358,7 @@ const ChatList: React.FC<ChatListProps> = ({ onRoomSelect, selectedRoomId }) => 
               </button>
               <button
                 onClick={createGroupChat}
-                disabled={selectedUsers.length === 0}
+                disabled={selectedUsers.length === 0 || !isConnected}
                 className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-lg"
               >
                 만들기

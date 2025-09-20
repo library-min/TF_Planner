@@ -9,17 +9,15 @@ import { AuthProvider } from './contexts/AuthContext'
 import { DataProvider } from './contexts/DataContext'
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <ThemeProvider>
-      <LanguageProvider>
-        <AuthProvider>
-          <DataProvider>
-            <MessageProvider>
-              <App />
-            </MessageProvider>
-          </DataProvider>
-        </AuthProvider>
-      </LanguageProvider>
-    </ThemeProvider>
-  </StrictMode>,
+  <ThemeProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <DataProvider>
+          <MessageProvider>
+            <App />
+          </MessageProvider>
+        </DataProvider>
+      </AuthProvider>
+    </LanguageProvider>
+  </ThemeProvider>,
 )

@@ -258,7 +258,9 @@ io.on('connection', (socket) => {
       senderId: messageData.senderId,
       senderName: messageData.senderName,
       timestamp: new Date().toISOString(),
-      type: 'text'
+      type: messageData.type || 'text', // 클라이언트가 보낸 타입 사용
+      fileUrl: messageData.fileUrl,     // 파일 URL 추가
+      fileName: messageData.fileName    // 파일 이름 추가
     };
 
     // 메시지 저장

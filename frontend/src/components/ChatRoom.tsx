@@ -1,17 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Phone, Video, Settings, Plus, Smile, Paperclip, X, LogOut } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
-import { useChat, ChatRoom as ChatRoomType, Message } from '../contexts/ChatContext';
+import { useChat, Message } from '../contexts/ChatContext';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 
 interface ChatRoomProps {
-  room: ChatRoomType;
+  roomId: string;
   onClose: () => void;
 }
 
-const ChatRoom: React.FC<ChatRoomProps> = ({ room, onClose }) => {
-  const { sendMessage, inviteToRoom, removeFromRoom, leaveRoom, markAsRead, joinRoom } = useChat();
+const ChatRoom: React.FC<ChatRoomProps> = ({ roomId, onClose }) => {
+  const { sendMessage, inviteToRoom, removeFromRoom, leaveRoom, getRoomById, joinRoom } = useChat();
+  const room = getRoomById(roomId);
+
   const { users } = useData();
   const { user, isAdmin } = useAuth();
   const { isDarkMode } = useTheme();
@@ -26,14 +28,29 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ room, onClose }) => {
   };
 
   useEffect(() => {
-    // 채팅방에 들어오면 Socket.IO에 joinRoom 알림
-    joinRoom(room.id);
-    scrollToBottom();
-  }, [room.id]); // joinRoom 의존성 제거하여 무한 루프 방지
+    if (roomId) {
+      joinRoom(roomId);
+    }
+  }, [roomId]);
 
   useEffect(() => {
     scrollToBottom();
-  }, [room.messages]);
+  }, [room?.messages]);
+
+  if (!room) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center bg-transparent">
+        <div className="text-center">
+          <h3 className={`text-lg font-semibold ${
+            isDarkMode ? 'text-gray-100' : 'text-gray-800'
+          }`}>채팅방을 선택해주세요.</h3>
+          <p className={`text-sm ${
+            isDarkMode ? 'text-gray-400' : 'text-gray-500'
+          }`}>왼쪽 목록에서 대화를 시작할 채팅방을 선택하세요.</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {

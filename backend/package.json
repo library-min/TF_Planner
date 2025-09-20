@@ -2,11 +2,11 @@
   "name": "tf-planner-backend",
   "version": "1.0.0",
   "description": "TF-Planner 백엔드 API 서버",
-  "main": "docs/index.js",
+  "main": "dist/server.js",
   "scripts": {
-    "dev": "nodemon src/index.ts",
+    "dev": "nodemon src/server.ts",
     "build": "tsc",
-    "start": "node docs/index.js",
+    "start": "node dist/server.js",
     "test": "jest"
   },
   "keywords": [

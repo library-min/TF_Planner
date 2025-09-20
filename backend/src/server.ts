@@ -32,7 +32,8 @@ const server = createServer(app);
 const io = new Server(server, {
   cors: {
     origin: process.env.FRONTEND_URL || "http://localhost:5173",
-    methods: ["GET", "POST"]
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
@@ -76,31 +77,120 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Socket.IO 연결 처리
+const userSocketMap: { [userId: string]: string[] } = {};
+
+// roomId에서 참여자 ID 목록을 추출하는 헬퍼 함수
+const getParticipantsFromRoomId = (roomId: string): string[] => {
+  if (roomId.startsWith('dm_')) {
+    return roomId.split('_').slice(1);
+  }
+  // TODO: 그룹 채팅방의 경우, 참여자 목록을 별도의 저장소에서 조회해야 함
+  // 현재 구현에서는 1:1 채팅만 완벽하게 지원
+  return [];
+};
+
 io.on('connection', (socket) => {
   logger.info(`사용자 연결됨: ${socket.id}`);
 
-  // 채팅방 참가
+  // 1. 사용자 등록 (user-join 이벤트 처리)
+  socket.on('user-join', (data: { id: string }) => {
+    const userId = data.id;
+    if (!userId) return;
+
+    if (!userSocketMap[userId]) {
+      userSocketMap[userId] = [];
+    }
+    userSocketMap[userId].push(socket.id);
+    logger.info(`사용자 등록: ${userId} -> 소켓 ${socket.id}`);
+    logger.info(`현재 접속자 맵: ${JSON.stringify(userSocketMap)}`);
+  });
+
+  // 채팅방 참가 (기존 로직 유지, UI상태 표시에 필요할 수 있음)
   socket.on('join-room', (roomId: string) => {
     socket.join(roomId);
     logger.info(`사용자 ${socket.id}가 방 ${roomId}에 참가했습니다.`);
   });
 
-  // 채팅방 나가기
+  // 채팅방 나가기 (기존 로직 유지)
   socket.on('leave-room', (roomId: string) => {
     socket.leave(roomId);
     logger.info(`사용자 ${socket.id}가 방 ${roomId}에서 나갔습니다.`);
   });
 
-  // 메시지 전송
+  // 2. 메시지 전송 로직 수정
   socket.on('send-message', (data) => {
-    socket.to(data.roomId).emit('receive-message', data);
-    logger.info(`메시지 전송: 방 ${data.roomId}`);
+    const message = {
+      id: Date.now().toString(),
+      content: data.content,
+      senderId: data.senderId,
+      senderName: data.senderName,
+      timestamp: new Date().toISOString(),
+      type: data.type || 'text',
+      fileUrl: data.fileUrl,
+      fileName: data.fileName
+    };
+
+    const roomId = data.roomId;
+    let participants: string[] = [];
+
+    // 클라이언트가 참여자 목록을 보내줬는지 확인 (그룹 채팅)
+    if (data.participants && data.participants.length > 0) {
+      participants = data.participants;
+    } else {
+      // 참여자 목록이 없으면 DM 방 ID에서 파싱 (1:1 채팅)
+      participants = getParticipantsFromRoomId(roomId);
+    }
+
+    if (participants.length > 0) {
+      logger.info(`메시지 전송 -> 방: ${roomId}, 참여자: ${participants.join(', ')}`);
+      participants.forEach(userId => {
+        const userSockets = userSocketMap[userId];
+        if (userSockets && userSockets.length > 0) {
+          userSockets.forEach(socketId => {
+            // 모든 참여자에게 메시지 자체를 전송
+            io.to(socketId).emit('receive-message', {
+              roomId: roomId,
+              message: message
+            });
+
+            // 발신자를 제외한 모든 참여자에게 "알림"을 전송
+            if (userId !== message.senderId) {
+              io.to(socketId).emit('new-message-notification', {
+                roomId: roomId,
+                senderName: message.senderName,
+                message: message
+              });
+            }
+          });
+        }
+      });
+    } else {
+      // 참여자를 특정할 수 없는 경우 (예: 공지방), 기존의 방 기반 브로드캐스트 사용
+      logger.info(`(폴백) 메시지 전송 -> 방: ${roomId}`);
+      io.to(roomId).emit('receive-message', { 
+        roomId: roomId, 
+        message: message 
+      });
+    }
   });
 
-  // 연결 해제
+  // 3. 연결 해제 시 사용자 정보 제거
   socket.on('disconnect', () => {
-    logger.info(`사용자 연결 해제됨: ${socket.id}`);
+    let disconnectedUserId: string | null = null;
+    for (const userId in userSocketMap) {
+      const socketIds = userSocketMap[userId];
+      const index = socketIds.indexOf(socket.id);
+      if (index !== -1) {
+        socketIds.splice(index, 1);
+        if (socketIds.length === 0) {
+          delete userSocketMap[userId];
+        }
+        disconnectedUserId = userId;
+        break;
+      }
+    }
+    logger.info(`사용자 연결 해제됨: ${socket.id} (ID: ${disconnectedUserId || 'N/A'})`);
+    logger.info(`현재 접속자 맵: ${JSON.stringify(userSocketMap)}`);
   });
 });
 
