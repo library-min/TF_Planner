@@ -25,8 +25,8 @@ interface AuthContextType {
   isAdmin: boolean;                                     // 관리자 권한 여부
   login: (email: string, password: string) => Promise<boolean>; // 로그인 함수
   signup: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>; // 회원가입 함수
-  loginAsDemo: (userType: 'admin' | 'user') => void;    // 데모 로그인 함수
-  logout: () => void;                                   // 로그아웃 함수
+  loginAsDemo: (userType: 'admin' | 'user' | 'user1' | 'user2' | 'user3' | 'user4' | 'user5') => void;    // 곕え 濡洹몄 ⑥
+  logout: () => void;                                   // 濡洹몄 ⑥
 }
 
 // 인증 컨텍스트 생성
@@ -107,25 +107,59 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    * 데모 로그인 함수
    * @param userType 사용자 타입 (admin 또는 user)
    */
-  const loginAsDemo = (userType: 'admin' | 'user') => {
-    // 데모 사용자 데이터 생성
-    const userData: User = userType === 'admin' 
-      ? {
-          id: '1',
-          name: '김철수 (관리자)',
-          email: 'admin@tf-planner.com',
-          role: '관리자'
-        }
-      : {
-          id: '2',
-          name: '박영희 (일반 사용자)',
-          email: 'user@tf-planner.com',
-          role: '사용자'
-        };
+  const loginAsDemo = (userType: 'admin' | 'user' | 'user1' | 'user2' | 'user3' | 'user4' | 'user5') => {
+    // 데모 사용자 데이터 맵
+    const demoUsers: { [key: string]: User } = {
+      admin: {
+        id: '1',
+        name: '김철수',
+        email: 'admin@tf-planner.com',
+        role: '관리자'
+      },
+      user: {  // 하위 호환성을 위한 임시
+        id: '2',
+        name: '박영희',
+        email: 'user1@tf-planner.com',
+        role: '일반사용자'
+      },
+      user1: {
+        id: '2',
+        name: '박영희',
+        email: 'user1@tf-planner.com',
+        role: '일반사용자'
+      },
+      user2: {
+        id: '3',
+        name: '이민수',
+        email: 'user2@tf-planner.com',
+        role: '일반사용자'
+      },
+      user3: {
+        id: '4',
+        name: '최지영',
+        email: 'user3@tf-planner.com',
+        role: '일반사용자'
+      },
+      user4: {
+        id: '5',
+        name: '정수진',
+        email: 'user4@tf-planner.com',
+        role: '일반사용자'
+      },
+      user5: {
+        id: '6',
+        name: '강호동',
+        email: 'user5@tf-planner.com',
+        role: '일반사용자'
+      }
+    };
     
-    // 사용자 정보 설정 및 로컬스토리지에 저장
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
+    const userData = demoUsers[userType];
+    if (userData) {
+      // 사용자 정보 설정 및 로컬스토리지에 저장
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+    }
   };
 
   /**

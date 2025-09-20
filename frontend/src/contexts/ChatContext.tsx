@@ -13,7 +13,7 @@ export interface Message {
   senderId: string;                        // 발신자 ID
   senderName: string;                      // 발신자 이름
   timestamp: string;                       // 전송 시간
-  type: 'text' | 'file' | 'image';        // 메시지 타입
+  type: 'text' | 'file' | 'image' | 'system'; // 메시지 타입
   fileUrl?: string;                        // 파일 URL (파일 메시지인 경우)
   fileName?: string;                       // 파일 이름 (파일 메시지인 경우)
 }
@@ -129,6 +129,17 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   // 각 채팅방별 읽지 않은 메시지 수
   const [unreadCounts, setUnreadCounts] = useState<{ [roomId: string]: number }>({});
 
+  const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
+
+  const userMap: { [key: string]: string } = {
+    '1': '김철수',
+    '2': '박영희', 
+    '3': '이민수',
+    '4': '최지영',
+    '5': '정수진',
+    '6': '강호동'
+  };
+
   // Socket.IO 연결 및 이벤트 리스너 설정
   useEffect(() => {
     // Socket.IO 서버에 연결
@@ -160,6 +171,12 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
     // 메시지 수신 이벤트
     socket.on('receive-message', (data: { roomId: string; message: Message }) => {
       console.log('📨 메시지 수신:', data);
+
+      // 데이터 유효성 검사
+      if (!data || !data.message) {
+        console.error('❌ 잘못된 메시지 데이터 수신:', data);
+        return;
+      }
       
       setChatRooms(prev => {
         // 기존 방이 있는지 확인
@@ -178,15 +195,8 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
           );
         } else {
           // 새 1:1 채팅방 자동 생성 (발신자가 다른 사람인 경우)
-          if (data.message.senderId !== currentUserId) {
-            const userMap: { [key: string]: string } = {
-              '1': '김철수',
-              '2': '박영희', 
-              '3': '이민수',
-              '4': '최지영'
-            };
-            
-            const senderName = userMap[data.message.senderId] || data.message.senderName;
+                    if (data.message.senderId !== currentUserId) {
+                      const senderName = userMap[data.message.senderId] || data.message.senderName;
             const newRoom: ChatRoom = {
               id: data.roomId,
               name: senderName, // 1:1 채팅은 상대방 이름으로 표시
@@ -218,14 +228,22 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
     });
 
     // 새 메시지 알림 이벤트
-    socket.on('new-message-notification', (data: { roomId: string; message: Message; from: string }) => {
+    socket.on('new-message-notification', (data: { roomId: string; senderName: string; message: Message }) => {
       console.log('🔔 새 메시지 알림:', data);
       
+      const room = getRoomById(data.roomId);
+      if (!room) return;
+
+      // 채팅방 타입에 따라 알림 제목을 다르게 설정
+      const title = room.type === 'individual'
+        ? `${data.senderName}님의 새 메시지`
+        : `새 메시지: ${room.name}`;
+
       // 브라우저 알림 표시 (권한이 있는 경우)
       if (Notification.permission === 'granted') {
-        new Notification(`${data.from}님의 새 메시지`, {
+        new Notification(title, {
           body: data.message.content,
-          icon: '/chat-icon.png'
+          icon: '/public/Logo(1).svg' // 아이콘 경로 수정
         });
       }
     });
@@ -280,12 +298,6 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
       
     // 참여자 ID를 이름으로 변환 (실제로는 사용자 컨텍스트나 API에서 가져와야 함)
     const participantNames = participants.map(id => {
-      const userMap: { [key: string]: string } = {
-        '1': '김철수',
-        '2': '박영희', 
-        '3': '이민수',
-        '4': '최지영'
-      };
       return userMap[id] || 'Unknown User';
     });
 
@@ -363,6 +375,8 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   ) => {
     // Socket.IO로 서버에 메시지 전송
     if (socketRef.current && isConnected) {
+      const room = getRoomById(roomId); // 참여자 목록을 가져오기 위해 현재 방 정보 조회
+
       const messageData = {
         roomId,
         content,
@@ -370,7 +384,8 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
         senderName: currentUserName,
         type,
         fileUrl: fileData?.url,
-        fileName: fileData?.name
+        fileName: fileData?.name,
+        participants: room?.participants || [] // 서버에 참여자 목록 전달
       };
 
       socketRef.current.emit('send-message', messageData);
@@ -389,12 +404,6 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   };
 
   const inviteToRoom = (roomId: string, userIds: string[]) => {
-    const userMap: { [key: string]: string } = {
-      '1': '김철수',
-      '2': '박영희', 
-      '3': '이민수',
-      '4': '최지영'
-    };
 
     setChatRooms(prev => prev.map(room => 
       room.id === roomId 
@@ -408,12 +417,6 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({
   };
 
   const removeFromRoom = (roomId: string, userId: string) => {
-    const userMap: { [key: string]: string } = {
-      '1': '김철수',
-      '2': '박영희', 
-      '3': '이민수',
-      '4': '최지영'
-    };
 
     setChatRooms(prev => prev.map(room => 
       room.id === roomId 
